@@ -1,0 +1,25 @@
+# امنیت
+.env
+*.token
+config.local.py
+
+# پایتون
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# داده‌های اجرایی
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/tmp/
+data/*.log
+data/transcript.json
+
+# سیستم
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
