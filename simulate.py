@@ -84,16 +84,19 @@ class Simulator:
         handle(ctx)
         # پیام‌های جدید این مرحله
         for record in self.client.sent[before:]:
-            if record["method"] == "sendMessage":
-                payload = record["payload"]
-                self.transcript.append({
-                    "text": payload.get("text", ""),
-                    "keyboard": payload.get("inline_keypad"),
-                    "trigger": update.button_id or update.text,
-                })
-                if not (payload.get("text") or "").strip():
-                    self.errors.append({"issue": "پیام خالی",
-                                        "trigger": update.button_id or update.text})
+            method = record.get("method")
+            payload = record.get("payload") or {}
+            if method not in ("sendMessage", "editMessageText", "sendFile"):
+                continue
+            text = payload.get("text") or payload.get("caption") or ""
+            self.transcript.append({
+                "text": text,
+                "keyboard": payload.get("inline_keypad"),
+                "trigger": update.button_id or update.text,
+            })
+            if not text.strip():
+                self.errors.append({"issue": "پیام خالی",
+                                    "trigger": update.button_id or update.text})
         for log in self.db.recent_logs("ERROR", limit=50):
             entry = {"issue": f"لاگ خطا: {log['where_']}",
                      "detail": log["message"][:160]}
