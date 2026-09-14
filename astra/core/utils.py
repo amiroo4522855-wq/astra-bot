@@ -53,11 +53,23 @@ def money(value: float | int | str, unit: str = "") -> str:
         text = f"{int(number):,}"
     else:
         text = f"{number:,.2f}".rstrip("0").rstrip(".")
-    return en_to_fa(text) + (f" {unit}" if unit else "")
+    return en_to_fa(text).replace(",", "\u066c") + (f" {unit}" if unit else "")
 
 
 def normalize_digits(text: str) -> str:
     return fa_to_en(text)
+
+
+def digits_to_en(text: str) -> str:
+    """تبدیل ارقام فارسی/عربی به انگلیسی **بدون دست‌زدن به فاصله‌ها**.
+
+    برای عباراتی مثل «10 کیلومتر به متر» که باید ساختار جمله حفظ شود.
+    """
+    if text is None:
+        return ""
+    table = {**{PERSIAN_DIGITS[i]: str(i) for i in range(10)},
+             **{ARABIC_DIGITS[i]: str(i) for i in range(10)}}
+    return str(text).translate(str.maketrans(table))
 
 
 # --------------------------------------------------------------------------- #

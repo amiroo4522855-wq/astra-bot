@@ -45,6 +45,7 @@ class Update:
     file_type: str = ""
     file_name: str = ""
     is_forwarded: bool = False
+    callback_query_id: str = ""       # مخصوص تلگرام (پاسخ به callback_query)
     raw: dict = field(default_factory=dict)
 
     @property
@@ -60,10 +61,71 @@ def _first_key(data: dict, keys: tuple[str, ...], default: Any = "") -> Any:
     return default
 
 
+def _telegram_chat_kind(chat_type: str) -> str:
+    if chat_type == "private":
+        return "private"
+    if chat_type == "channel":
+        return "channel"
+    return "group"
+
+
 def parse_update(raw: dict) -> Update | None:
-    """تبدیل بدنه‌ی وب‌هوک/آپدیت روبیکا به شیء ‎Update‎."""
+    """تبدیل بدنه‌ی وب‌هوک/آپدیت (روبیکا یا تلگرام) به شیء ‎Update‎."""
     if not raw:
         return None
+
+    # ---------------- تلگرام ---------------- #
+    callback_query = raw.get("callback_query")
+    if callback_query:
+        message = callback_query.get("message") or {}
+        chat = message.get("chat") or {}
+        sender = callback_query.get("from") or {}
+        chat_id = str(chat.get("id", ""))
+        return Update(
+            kind="callback",
+            chat_id=chat_id,
+            chat_type=_telegram_chat_kind(chat.get("type", "private")),
+            sender_id=str(sender.get("id", "")),
+            message_id=str(message.get("message_id", "")),
+            text=str(callback_query.get("data", "") or ""),
+            button_id=str(callback_query.get("data", "") or ""),
+            first_name=str(sender.get("first_name", "")),
+            username=str(sender.get("username", "")),
+            callback_query_id=str(callback_query.get("id", "")),
+            raw=raw,
+        )
+
+    tg_message = raw.get("message") or raw.get("edited_message") or raw.get("channel_post")
+    if isinstance(tg_message, dict) and tg_message.get("message_id") is not None:
+        chat = tg_message.get("chat") or {}
+        sender = tg_message.get("from") or {}
+        chat_id = str(chat.get("id", ""))
+        file_id = ""
+        file_type = ""
+        photos = tg_message.get("photo") or []
+        if photos:
+            file_id = str(photos[-1].get("file_id", ""))
+            file_type = "Image"
+        document = tg_message.get("document") or tg_message.get("video") or {}
+        if document and not file_id:
+            file_id = str(document.get("file_id", ""))
+            file_type = "File"
+        text = str(tg_message.get("text") or tg_message.get("caption") or "")
+        return Update(
+            kind="message",
+            chat_id=chat_id,
+            chat_type=_telegram_chat_kind(chat.get("type", "private")),
+            sender_id=str(sender.get("id", "") or chat_id),
+            message_id=str(tg_message.get("message_id", "")),
+            text=text,
+            first_name=str(sender.get("first_name", "")),
+            username=str(sender.get("username", "")),
+            file_id=file_id,
+            file_type=file_type,
+            is_forwarded=bool(tg_message.get("forward_origin")
+                              or tg_message.get("forward_from")),
+            raw=raw,
+        )
 
     # حالت ۱: وب‌هوک receiveInlineMessage (کلیک روی دکمه‌ی شیشه‌ای)
     inline = raw.get("inline_message") or raw.get("inlineMessage")

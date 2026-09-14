@@ -1,0 +1,20 @@
+[Unit]
+Description=Astra - Rubika Multi-Tool Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/astra-bot
+Environment=PYTHONUNBUFFERED=1
+Environment=TZ=Asia/Tehran
+ExecStart=/root/astra-bot/.venv/bin/python main.py
+Restart=always
+RestartSec=5
+KillSignal=SIGTERM
+StandardOutput=append:/var/log/astra.log
+StandardError=append:/var/log/astra.log
+
+[Install]
+WantedBy=multi-user.target

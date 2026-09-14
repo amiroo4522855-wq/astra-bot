@@ -1,0 +1,19 @@
+services:
+  astra:
+    build: .
+    container_name: astra-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # polling برای اجرای ساده (بدون دامنه/SSL) — برای وب‌هوک: webhook
+      RUN_MODE: polling
+      TZ: Asia/Tehran
+    volumes:
+      - astra-data:/app/data
+    # برای حالت وب‌هوک فعال کن:
+    # ports:
+    #   - "8443:8443"
+
+volumes:
+  astra-data:

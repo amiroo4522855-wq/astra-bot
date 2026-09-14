@@ -96,8 +96,10 @@ Python 3.10+      •   اینترنت   •   توکن ربات از @BotFather
 ```
 
 ### ۱) دریافت توکن
-1. در روبیکا به [@BotFather](https://rubika.ir/BotFather) برو
-2. بات بساز و توکن را کپی کن
+- **روبیکا:** در روبیکا به [@BotFather](https://rubika.ir/BotFather) برو، بات بساز و توکن را کپی کن
+- **تلگرام:** در تلگرام به [@BotFather](https://t.me/BotFather) برو، `/newbot` بزن و توکن را کپی کن
+
+> آسترا روی **هر دو پلتفرم** با یک کد اجرا می‌شود (لایه‌ی تلگرام در `astra/core/telegram.py`).
 
 ### ۲) نصب
 ```bash
@@ -118,9 +120,13 @@ nano .env          # توکن و شناسه‌ی ادمین را وارد کن
 
 حداقل تنظیمات لازم:
 ```env
-BOT_TOKEN=توکنی_که_از_بات_فادر_گرفتی
+BOT_TOKEN=توکن_روبیکا              # برای اجرا روی روبیکا
+TELEGRAM_BOT_TOKEN=123456:AA...    # برای اجرا روی تلگرام
+PLATFORM=auto                      # یا rubika / telegram
 ADMIN_IDS=شناسه_کاربری_خودت
 ```
+در حالت `auto` پلتفرم از روی قالب توکن تشخیص داده می‌شود
+(توکن تلگرام همیشه `عدد:رشته` است).
 
 > بعد از اولین اجرا، داخل ربات `/id` را بزن تا شناسه‌ات را بگیری و در `ADMIN_IDS` قرار بدهی.
 
@@ -158,11 +164,18 @@ pip install -U yt-dlp              # جستجو/دانلود موسیقی و و�
 ## ▶️ اجرا
 
 ```bash
-python main.py              # اجرا با Long Polling
-python main.py --check      # فقط بررسی توکن و اتصال
-python main.py --once       # یک دور دریافت آپدیت و خروج
-python main.py -v           # با لاگ کامل
+python main.py                        # اجرا (روبیکا یا تلگرام، تشخیص خودکار)
+python main.py --platform telegram    # اجرا روی تلگرام
+python main.py --platform rubika      # اجرا روی روبیکا
+python main.py --check                # فقط بررسی توکن و اتصال
+python main.py --platform telegram --check
+python main.py --once                 # یک دور دریافت آپدیت و خروج
+python main.py -v                     # با لاگ کامل
 ```
+
+روی تلگرام همه چیز یکسان است؛ فقط این تبدیل‌ها خودکار انجام می‌شود:
+کیبورد شیشه‌ای → `inline_keyboard`، کیبورد پایین صفحه → `ReplyKeyboardMarkup`،
+شناسه‌ی دکمه → `callback_data`، و `callback_query` به‌طور خودکار پاسخ داده می‌شود.
 
 اجرای دائمی روی سرور (systemd):
 ```ini
@@ -193,6 +206,8 @@ python main.py --webhook https://example.com/astra-webhook
 astra-bot/
 ├── main.py                 # نقطه‌ی ورود (CLI)
 ├── simulate.py             # تست خودکارِ همه‌ی مسیرها (بدون اینترنت)
+├── webhook_server.py       # سرور وب‌هوک (بدون وابستگی اضافی)
+├── Dockerfile · docker-compose.yml · deploy/astra.service
 ├── requirements.txt
 ├── .env.example
 └── astra/
@@ -200,6 +215,8 @@ astra-bot/
     ├── data/               # jokes, poems, hafez, challenges
     ├── core/
     │   ├── client.py       # کلاینت Bot API v3 روبیکا
+│   ├── telegram.py     # آداپتور تلگرام (همان رابط، پلتفرم دیگر)
+│   ├── factory.py      # انتخاب خودکار کلاینت بر اساس توکن
     │   ├── keyboards.py    # کیبورد شیشه‌ای و چیدمان ۲/۳ ستونه
     │   ├── context.py      # شیء Context + مدل پیام ورودی
     │   ├── router.py       # مسیریابی callback/دستور/وضعیت/متن
@@ -263,8 +280,9 @@ def my_tool_do(ctx):
 بدون نیاز به توکن یا اینترنت:
 
 ```bash
-python simulate.py            # حالت آفلاین (سریع)
-python simulate.py --online   # با فراخوانی سرویس‌های واقعی
+python -m unittest discover -s tests -v   # تست‌های واحد
+python simulate.py                        # حالت آفلاین (سریع)
+python simulate.py --online               # با فراخوانی سرویس‌های واقعی
 ```
 
 خروجی نمونه:

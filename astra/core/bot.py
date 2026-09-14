@@ -9,6 +9,7 @@ from typing import Any
 
 from .. import config, handlers  # noqa: F401  (import برای ثبت مسیرها)
 from .client import RubikaClient, RubikaError
+from .factory import create_client, resolve_platform
 from .context import Context, parse_update
 from .db import DB, Database
 from .router import handle
@@ -18,9 +19,12 @@ class AstraBot:
     """مدیر اصلی ربات: polling یا webhook، با پردازش موازی و امن."""
 
     def __init__(self, token: str | None = None, db: Database | None = None,
-                 client: RubikaClient | None = None) -> None:
+                 client: RubikaClient | None = None,
+                 platform: str | None = None) -> None:
         self.db = db or DB
-        self.client = client or RubikaClient(token or config.BOT_TOKEN)
+        self.platform = resolve_platform(platform, token) if client is None else \
+            getattr(client, "platform", "rubika")
+        self.client = client or create_client(self.platform, token)
         self.offset: str = self.db.get_setting("offset_id", "")
         self.running = True
         self.processed = 0
@@ -36,6 +40,12 @@ class AstraBot:
             update = parse_update(raw)
             if not update or not update.chat_id:
                 return
+            # در تلگرام باید به کلیک پاسخ داده شود تا حالتِ بارگذاری قطع شود
+            if update.callback_query_id and hasattr(self.client, "answer_callback_query"):
+                try:
+                    self.client.answer_callback_query(update.callback_query_id)
+                except Exception:
+                    pass
             ctx = Context(self.client, self.db, update)
             handle(ctx)
             self.processed += 1
@@ -51,9 +61,10 @@ class AstraBot:
     # ------------------------------------------------------------------ #
     # Polling
     # ------------------------------------------------------------------ #
-    @staticmethod
-    def _next_offset(raw: dict) -> str:
+    def _next_offset(self, raw: dict) -> str:
         """استخراج شناسه‌ی بعدی برای ادامه‌ی دریافت آپدیت‌ها."""
+        if self.platform == "telegram" and raw.get("update_id") is not None:
+            return str(int(raw["update_id"]) + 1)      # آفست تلگرام = آخرین + ۱
         for key in ("update_id", "start_id", "offset_id", "id"):
             value = raw.get(key)
             if value:
@@ -103,12 +114,13 @@ class AstraBot:
     # ------------------------------------------------------------------ #
     def bootstrap(self) -> None:
         """بررسی اتصال و ثبت دستورات (در صورت امکان)."""
+        label = "تلگرام 🤖" if self.platform == "telegram" else "روبیکا ✨"
         try:
             info = self.client.get_me()
             bot = info.get("bot") or info
             name = bot.get("name") or config.BOT_NAME
             username = bot.get("username") or config.BOT_USERNAME
-            print(f"✨ {name} (@{username}) آماده است — Ctrl+C برای توقف")
+            print(f"✨ {name} (@{username}) روی {label} آماده است — Ctrl+C برای توقف")
         except RubikaError as exc:
             print(f"⚠️ خطا در اتصال به روبیکا: {exc}\n"
                   "   توکن را در فایل .env بررسی کن.")

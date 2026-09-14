@@ -1,7 +1,7 @@
 """تبدیل واحد: طول، وزن، دما، زمان، حجم، داده، سرعت و مساحت."""
 from __future__ import annotations
 
-from ..core.utils import en_to_fa, fa_to_en
+from ..core.utils import digits_to_en, en_to_fa, fa_to_en
 
 # واحدها بر اساس ضریب تبدیل به واحد پایه هر دسته
 UNITS: dict[str, dict[str, tuple[str, float, float]]] = {
@@ -118,21 +118,23 @@ def unit_label(unit: str) -> str:
 
 
 def pretty(value: float) -> str:
+    """نمایش خوانا: بدون نماد علمی برای اعداد معمولی."""
     if value == 0:
         return "0"
-    if abs(value) >= 1000 or abs(value) < 0.001:
+    # فقط اعداد بسیار بزرگ/کوچک به صورت علمی نمایش داده می‌شوند
+    if abs(value) >= 1e12 or abs(value) < 1e-4:
         return f"{value:.4g}"
-    return f"{value:.6g}"
+    return f"{value:.6f}".rstrip("0").rstrip(".")
 
 
 def convert_text(text: str) -> str:
     """تبدیل یک عبارت متنی: «10 کیلومتر به متر» یا «100 f to c»."""
-    cleaned = fa_to_en(text).strip()
-    cleaned = cleaned.replace("به", " to ").replace("→", " to ")
+    cleaned = digits_to_en(text).strip()          # فقط ارقام، بدون حذف فاصله‌ها
+    cleaned = cleaned.replace(" به ", " to ").replace("→", " to ")
     parts = [p for p in cleaned.replace("  ", " ").split() if p]
     if len(parts) < 3:
         raise ValueError("فرمت درست نیست")
-    value = float(parts[0].replace(",", ""))
+    value = float(parts[0].replace(",", "").replace("\u066c", ""))
     source = _normalize(parts[1])
     target = _normalize(parts[-1])
     result = convert(value, source, target)
