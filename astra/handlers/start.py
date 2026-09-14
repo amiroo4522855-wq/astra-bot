@@ -55,7 +55,27 @@ def start(ctx: Context) -> None:
         ctx.send(_group_welcome_text(ctx),
                  kb().row(btn("⚙️ تنظیمات گروه", "menu:group")).build())
         return
-    ctx.send(_welcome_text(ctx), main_menu(), chat_keypad=home_keyboard())
+
+    # لینک عمیقِ چت ناشناس: ‎/start a<token>‎
+    arg = (ctx.arg or "").strip()
+    if arg.startswith("a") and len(arg) > 6:
+        from .anon import join_request
+        join_request(ctx, arg[1:])
+        return
+
+    text = _welcome_text(ctx)
+    menu = main_menu()
+    try:
+        chat_row = ctx.db.anon_active_chat(ctx.sender_id)
+    except Exception:
+        chat_row = None
+    if chat_row:
+        text += ("\n───────────────\n"
+                 "💬 شما در یک «گفتگوی ناشناس» هستید؛ پیام‌هایتان مستقیم می‌رود 🕵️")
+        menu["rows"].insert(0, {"buttons": [
+            {"id": "anon:status", "type": "Simple", "button_text": "💬 ادامه چت ناشناس"},
+            {"id": "anon:stop", "type": "Simple", "button_text": "🚪 بستن چت"}]})
+    ctx.send(text, menu, chat_keypad=home_keyboard())
 
 
 @route("nav:home")

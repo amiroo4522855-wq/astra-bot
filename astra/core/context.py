@@ -45,6 +45,8 @@ class Update:
     file_type: str = ""
     file_name: str = ""
     is_forwarded: bool = False
+    reply_to: str = ""                # شناسه‌ی پیامی که به آن پاسخ داده شده
+    media_kind: str = ""              # photo | document | sticker | voice | video | audio | animation
     callback_query_id: str = ""       # مخصوص تلگرام (پاسخ به callback_query)
     web_app_data: str = ""            # داده‌ی ارسالی از مینی‌اپ (Telegram Web App)
     raw: dict = field(default_factory=dict)
@@ -111,6 +113,19 @@ def parse_update(raw: dict) -> Update | None:
         if document and not file_id:
             file_id = str(document.get("file_id", ""))
             file_type = "File"
+        media_kind = ""
+        for kind in ("sticker", "voice", "video_note", "video", "animation", "audio"):
+            payload = tg_message.get(kind)
+            if isinstance(payload, dict) and payload.get("file_id"):
+                file_id = str(payload.get("file_id", ""))
+                file_type = "Sticker" if kind == "sticker" else "File"
+                media_kind = "voice" if kind in ("voice", "video_note") else kind
+                break
+        if file_type == "Image" and not media_kind:
+            media_kind = "photo"
+        if file_type == "File" and not media_kind:
+            media_kind = "document"
+        reply_to = str((tg_message.get("reply_to_message") or {}).get("message_id", ""))
         web_app_raw = (tg_message.get("web_app_data") or {}).get("data", "") or ""
         text = str(tg_message.get("text") or tg_message.get("caption") or "")
         return Update(
@@ -125,6 +140,8 @@ def parse_update(raw: dict) -> Update | None:
             username=str(sender.get("username", "")),
             file_id=file_id,
             file_type=file_type,
+            media_kind=media_kind,
+            reply_to=reply_to,
             is_forwarded=bool(tg_message.get("forward_origin")
                               or tg_message.get("forward_from")),
             raw=raw,
@@ -192,6 +209,7 @@ def parse_update(raw: dict) -> Update | None:
         file_type=str(file_obj.get("type") or message.get("file_type") or ""),
         file_name=str(file_obj.get("file_name") or message.get("file_name") or ""),
         is_forwarded=forwarded,
+        reply_to=str(_first_key(message, ("reply_to_message_id",), "") or ""),
         raw=raw,
     )
 

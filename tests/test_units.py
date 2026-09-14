@@ -374,3 +374,197 @@ class TestChannelPrices(unittest.TestCase):
         rows = dict((label, unit) for label, _, unit
                     in currency.extract_channel_rows("🟠 بیت\u200cکوین: 78,794"))
         self.assertEqual(rows.get("🟠 بیت\u200cکوین"), "دلار")
+
+
+# --------------------------------------------------------------------------- #
+# بازی دوز و چت ناشناس
+# --------------------------------------------------------------------------- #
+class TestDooz(unittest.TestCase):
+    """منطق بازی دوز."""
+
+    def test_bot_blocks_immediate_threat(self):
+        from astra.services import dooz
+        board = dooz.place(dooz.place(dooz.new_board(), 0, dooz.X), 1, dooz.X)
+        move = dooz.best_move(board, ai=dooz.O, human=dooz.X)
+        self.assertEqual(move, 2)
+
+    def test_bot_takes_the_win(self):
+        from astra.services import dooz
+        board = dooz.place(dooz.place(dooz.place(dooz.new_board(), 0, dooz.O), 1, dooz.O),
+                           4, dooz.X)
+        self.assertEqual(dooz.best_move(board, ai=dooz.O, human=dooz.X), 2)
+
+    def test_win_line_detection(self):
+        from astra.services import dooz
+        board = dooz.place(dooz.place(dooz.place(dooz.new_board(), 0, dooz.X),
+                                      4, dooz.X), 8, dooz.X)
+        result = dooz.win_line(board)
+        self.assertIsNotNone(result)
+        self.assertEqual(result[0], dooz.X)
+
+    def test_pro_level_never_loses(self):
+        """در ۴۰ بازی تصادفی، رباتِ «حرفه‌ای» هرگز نباید ببازد."""
+        from astra.services import dooz
+        import random
+        for _ in range(40):
+            board = dooz.new_board()
+            turn = dooz.X
+            while not dooz.win_line(board) and not dooz.is_full(board):
+                if turn == dooz.X:
+                    board = dooz.place(board, random.choice(dooz.free_cells(board)), dooz.X)
+                else:
+                    board = dooz.place(board, dooz.bot_move(board, "pro"), dooz.O)
+                turn = dooz.opponent(turn)
+            result = dooz.win_line(board)
+            self.assertNotEqual(result and result[0], dooz.X)
+
+
+class _FakeClient:
+    """کلاینت ساختگی برای تستِ جریان‌های گفتگو."""
+
+    def __init__(self):
+        self.sent: list[tuple[str, str, dict]] = []
+        self.counter = 100
+
+    def send_message(self, chat_id, text, **kwargs):
+        self.counter += 1
+        self.sent.append((str(chat_id), text, kwargs))
+        return {"result": {"message_id": str(self.counter)}}
+
+    def edit_message_text(self, chat_id, message_id, text, inline_keypad=None):
+        self.sent.append((str(chat_id), text, {}))
+        return {"result": {"message_id": message_id}}
+
+    def send_file(self, chat_id, file_id, caption="", file_type=None, **kwargs):
+        self.counter += 1
+        self.sent.append((str(chat_id), caption, kwargs))
+        return {"result": {"message_id": str(self.counter)}}
+
+    def send_sticker(self, chat_id, sticker_id):
+        self.counter += 1
+        return {"result": {"message_id": str(self.counter)}}
+
+    def delete_message(self, chat_id, message_id):
+        return {"ok": True}
+
+    def last_to(self, chat_id: str) -> str:
+        for target, text, _ in reversed(self.sent):
+            if target == str(chat_id):
+                return text
+        return ""
+
+
+class TestAnonChat(unittest.TestCase):
+    """جریان کامل چت ناشناس: ساخت لینک، اتصال، پیام، ریپلای، بستن."""
+
+    def setUp(self):
+        import tempfile
+        from astra.core.context import Context, Update
+        from astra.core.db import Database
+        self._dir = tempfile.mkdtemp()
+        self.db = Database(str(__import__("pathlib").Path(self._dir) / "t.db"))
+        self.client = _FakeClient()
+
+        def make(user_id: str, text: str = "", **kw) -> Context:
+            update = Update(kind="message", chat_id=user_id, chat_type="private",
+                            sender_id=user_id, text=text, message_id="555",
+                            first_name=f"user{user_id}", **kw)
+            return Context(self.client, self.db, update)
+
+        self.make = make
+
+    def tearDown(self):
+        self.db.close()
+
+    def test_link_create_join_relay_reply_and_close(self):
+        from astra.handlers import anon
+
+        # ۱) کاربر A لینک می‌سازد
+        ctx_a = self.make("111")
+        anon.anon_new(ctx_a)
+        links = self.db.anon_owner_links("111")
+        self.assertEqual(len(links), 1)
+        token = links[0]["token"]
+
+        # ۲) کاربر B با لینک می‌پیوندد
+        ctx_b = self.make("222")
+        anon.join_request(ctx_b, token)
+        ctx_b.arg = token
+        anon.anon_join(ctx_b)
+        chat_row = self.db.anon_active_chat("222")
+        self.assertIsNotNone(chat_row)
+        self.assertEqual(str(chat_row["user_a"]), "111")
+
+        # ۳) B پیام می‌دهد → باید به A برسد
+        ctx_b = self.make("222", "سلام!")
+        anon.anon_talk(ctx_b)
+        self.assertIn("سلام!", self.client.last_to("111"))
+
+        # ۴) A روی همان پیام ریپلای می‌زند → باید به B برسد (با reply درست)
+        chat_row = self.db.anon_active_chat("111")
+        self.assertIsNotNone(chat_row)
+        received_id = [mid for (chat, mid) in
+                       [(c, None) for c in []]]  # placeholder (unused)
+        # شناسه‌ی پیامی که A دریافت کرد (از نگاشت پاسخ)
+        rows = self.db._query_all(
+            "SELECT msg_id, target FROM anon_msgs WHERE chat_id = ?", ("111",))
+        self.assertTrue(rows, "نگاشت پیام ثبت نشده")
+        msg_id, target = rows[0]["msg_id"], rows[0]["target"]
+        self.assertEqual(target, "555")
+
+        ctx_a = self.make("111", "علیک سلام", reply_to=str(msg_id))
+        anon.anon_talk(ctx_a)
+        self.assertIn("علیک سلام", self.client.last_to("222"))
+
+        # ۵) B چت را می‌بندد → هر دو طرف آگاه می‌شوند و وضعیت پاک می‌شود
+        ctx_b = self.make("222", "🚪 بستن چت")
+        anon.anon_talk(ctx_b)
+        self.assertIsNone(self.db.anon_active_chat("222"))
+        self.assertIsNone(self.db.anon_active_chat("111"))
+        self.assertEqual(self.db.get_state("222"), ("", {}))
+
+    def test_block_prevents_reconnect(self):
+        from astra.handlers import anon
+        token = self.db.anon_create_link("111")
+        ctx_b = self.make("222")
+        ctx_b.arg = token
+        anon.anon_join(ctx_b)
+        ctx_b = self.make("222", "🚫 بلاک")
+        anon.anon_talk(ctx_b)
+        self.assertTrue(self.db.anon_is_blocked("222", "111"))
+
+        # لینک جدیدِ A نباید برای B کار کند
+        token2 = self.db.anon_create_link("111")
+        ctx_b2 = self.make("222")
+        anon.join_request(ctx_b2, token2)
+        self.assertIn("امکان برقراری", self.client.last_to("222"))
+
+    def test_reveal_needs_both_sides(self):
+        from astra.handlers import anon
+        self.db.touch_user("111", "علی", "ali")
+        self.db.touch_user("222", "سارا", "sara")
+        token = self.db.anon_create_link("111")
+        ctx_b = self.make("222")
+        ctx_b.arg = token
+        anon.anon_join(ctx_b)
+
+        anon.anon_reveal(self.make("222"))
+        chat = self.db.anon_active_chat("222")
+        self.assertNotEqual(bool(chat["reveal_a"]) and bool(chat["reveal_b"]),
+                            True)  # هنوز فقط یک طرف
+
+        anon.anon_reveal(self.make("111"))
+        chat = self.db.anon_active_chat("111")
+        self.assertTrue(chat["reveal_a"] and chat["reveal_b"])
+        self.assertIn("ali", self.client.last_to("111"))
+        self.assertIn("sara", self.client.last_to("222"))
+
+    def test_revoked_link_is_dead(self):
+        from astra.handlers import anon
+        token = self.db.anon_create_link("111")
+        ctx = self.make("111")
+        ctx.arg = token
+        anon.anon_revoke(ctx)
+        self.assertEqual(self.db.anon_link(token)["status"], "banned")
+        anon.join_request(self.make("222"), token)
+        self.assertIn("باطل", self.client.last_to("222"))

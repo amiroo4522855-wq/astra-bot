@@ -264,6 +264,27 @@ body.ready .hero{animation:spFade .7s var(--e) both}
 @keyframes float{0%,100%{transform:translate(0,0)}50%{transform:translate(-14px,16px)}}
 @keyframes glow{0%,100%{box-shadow:0 10px 26px rgba(139,92,246,.45)}50%{box-shadow:0 14px 34px rgba(34,211,238,.5)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+ /* ---------- بازی دوز ---------- */
+ .dz-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:8px}
+ .dz-board{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(270px,86%);aspect-ratio:1/1}
+ .dz-cell{border-radius:16px;background:var(--panel2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;min-height:74px;
+  transition:transform .18s var(--e),background .25s,box-shadow .3s,border-color .25s}
+ .dz-cell:hover{border-color:rgba(139,92,246,.5);transform:translateY(-2px)}
+ .dz-cell:active{transform:scale(.93)}
+ .dz-cell svg{width:54%;height:54%}
+ .dz-x path{stroke:#22d3ee;stroke-width:8;stroke-linecap:round;fill:none}
+ .dz-o circle{stroke:#f472b6;stroke-width:8;fill:none;stroke-linecap:round}
+ .dz-x path,.dz-o circle{stroke-dasharray:130;animation:draw .5s var(--e) both}
+ .dz-cell.win{background:rgba(52,211,153,.14);border-color:rgba(52,211,153,.55);
+  box-shadow:0 0 0 2px rgba(52,211,153,.35),0 0 26px rgba(52,211,153,.3);animation:pop .45s var(--e) both}
+ .dz-status{font-weight:800;font-size:14.5px;text-align:center;line-height:1.8}
+ .dz-score{font-size:12px;color:var(--mut)}
+ .chip.on{background:var(--grad);color:#06121f;border-color:transparent;font-weight:800}
+ @keyframes draw{from{stroke-dashoffset:130}to{stroke-dashoffset:0}}
+ .kv{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line2);font-size:12.5px}
+ .kv b{font-weight:800}
 </style>
 </head>
 <body>
@@ -322,6 +343,11 @@ body.ready .hero{animation:spFade .7s var(--e) both}
   <symbol id="i-uv" viewBox="0 0 24 24"><path d="M4 17a8 8 0 1116 0"/><path d="M8.5 20l1.5-3 1.5 3M14.5 20l1.5-3 1.5 3"/></symbol>
   <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
   <symbol id="i-sunrise" viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M8 13l4-4 4 4"/><path d="M12 9V4M6.5 10.5L4.5 8.5M17.5 10.5l2-2"/></symbol>
+  <symbol id="i-game" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/>
+    <path d="M8.2 8.2l3.2 3.2M11.4 8.2l-3.2 3.2"/><circle cx="15.6" cy="9.8" r="2.1"/>
+    <path d="M9.4 17.4l2.8-2.8M12.2 17.4l-2.8-2.8"/><circle cx="16.4" cy="16.2" r="2.1"/></symbol>
+  <symbol id="i-anon" viewBox="0 0 24 24"><path d="M3.5 10.2h17v1.6a7.6 7.6 0 01-2.4 5.5l-1.4 1.3H7.3l-1.4-1.3a7.6 7.6 0 01-2.4-5.5v-1.6z"/>
+    <path d="M8.4 6.6h7.2v3.6H8.4z"/><path d="M9.6 13.2a3.4 3.4 0 004.8 0"/></symbol>
   <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 10-2.3 5.7"/><path d="M20 5.5V11h-5.5"/></symbol>
 </svg>
 
@@ -510,6 +536,8 @@ const TOOLS=[
  {k:'calc',t:'ماشین‌حساب',s:'پیشرفته',c:'rgba(139,92,246,.32)'},
  {k:'convert',t:'تبدیل واحد',s:'۸ دسته',c:'rgba(96,165,250,.28)'},
  {k:'clock',t:'ساعت جهانی',s:'۷۸ شهر دنیا',c:'rgba(45,212,191,.28)'},
+ {k:'dooz',i:'game',t:'بازی دوز ❌⭕️',s:'۴ سطح · همین‌جا بازی کن',c:'rgba(52,211,153,.28)'},
+ {k:'anon',i:'anon',t:'چت ناشناس 🕵️',s:'ساخت لینک امن و مخفی',c:'rgba(139,92,246,.32)'},
 ];
 const BOT=[
  {k:'ai',i:'ai',t:'چت هوش مصنوعی',s:'سوال بپرس'},
@@ -730,6 +758,33 @@ const UI={
   <div class="row" style="margin-top:9px"><button id="cvGo">تبدیل کن 🔄</button></div>
   <div class="out" id="cvOut">مقدار و واحد را انتخاب کن</div>`,
 
+ dooz:()=>`<h2><svg class="ic"><use href="#i-game"/></svg> بازی دوز ❌⭕️</h2>
+  <div class="dz-levels" id="dzLevels"></div>
+  <div class="dz-wrap">
+   <div class="dz-status" id="dzStatus">آماده‌ای؟ یکی از سطح‌ها را انتخاب کن 😎</div>
+   <div class="dz-board" id="dzBoard"></div>
+   <div class="dz-score" id="dzScore">🏆 ۰ برد · 💀 ۰ باخت · 🤝 ۰ مساوی</div>
+  </div>
+  <div class="row" style="margin-top:11px;justify-content:center">
+   <button class="ghost" id="dzNew">🔄 شروع دوباره</button>
+   <button class="ghost" id="dzBot">🤖 بازی در ربات</button>
+  </div>
+  <p class="mut" style="margin:9px 0 0">سطح «حرفه‌ای 👑» شکست‌ناپذیر است؛ در ربات می‌توانی دونفره هم بازی کنی 👥</p>`,
+
+ anon:()=>`<h2><svg class="ic"><use href="#i-anon"/></svg> چت ناشناس 🕵️</h2>
+  <p class="mut" style="margin:0 0 10px">یک لینک اختصاصی می‌سازی، برای هر کس می‌فرستی و
+   <b style="color:var(--tx)">بدون اینکه هویتت فاش شود</b> چت می‌کنی 🔒</p>
+  <div class="kv"><span>🔒 هویت شما</span><b>کاملاً مخفی</b></div>
+  <div class="kv"><span>⏳ اعتبار لینک</span><b>۲۴ ساعت</b></div>
+  <div class="kv"><span>🚪 بستن چت</span><b>هر لحظه</b></div>
+  <div class="kv"><span>🚫 بلاک و ابطال لینک</span><b>دارد</b></div>
+  <div class="kv"><span>🪪 افشای هویت</span><b>فقط با رضایت دو طرف</b></div>
+  <div class="row" style="margin-top:12px">
+   <button id="anGo">🔗 ساخت لینک ناشناس</button>
+   <button class="ghost" id="anHelp">🛡 راهنمای امنیت</button>
+  </div>
+  <div class="out" id="anOut">با زدن دکمه‌ی بالا، ربات بلافاصله لینک اختصاصی شما را در چت تلگرام می‌فرستد 📨</div>`,
+
  clock:()=>`<h2><svg class="ic"><use href="#i-clock"/></svg> ساعت جهانی</h2>
   <div class="out" style="margin:0 0 10px">🕓 ${'<span id="iranClock"></span>'}</div>
   <input id="clkSearch" placeholder="جستجوی شهر…" style="width:100%;margin-bottom:8px">
@@ -758,6 +813,91 @@ const UNITS={'متر':'m','کیلومتر':'km','سانتی‌متر':'cm','ما
 const FACT={m:1,km:1000,cm:.01,mi:1609.344,ft:.3048,in:.0254,kg:1,g:.001,lb:.45359237,oz:.0283495,
  s:1,min:60,h:3600,d:86400};
 
+/* ---------- بازی دوز (هوش: جستجوی کامل) ---------- */
+const DZ={b:null,lvl:'hard',turn:'x',over:false,score:{win:0,lose:0,draw:0}};
+const DZW=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const dzEmpty=b=>{const r=[];for(let i=0;i<9;i++)if(b[i]==='-')r.push(i);return r;};
+function dzWinner(b){for(const L of DZW){if(b[L[0]]!=='-'&&b[L[0]]===b[L[1]]&&b[L[1]]===b[L[2]])return[b[L[0]],L];}return null;}
+function dzScore(b,ai,turn,d){const w=dzWinner(b);if(w)return w[0]===ai?10-d:d-10;
+ if(!b.includes('-'))return 0;let best=turn===ai?-99:99;
+ for(const i of dzEmpty(b)){const nb=b.slice();nb[i]=turn;
+  const v=dzScore(nb,ai,turn==='x'?'o':'x',d+1);best=turn===ai?Math.max(best,v):Math.min(best,v);}
+ return best;}
+function dzBest(b,ai,hu){const e=dzEmpty(b);if(!e.length)return -1;
+ for(const i of e){const nb=b.slice();nb[i]=ai;if(dzWinner(nb))return i;}
+ for(const i of e){const nb=b.slice();nb[i]=hu;if(dzWinner(nb))return i;}
+ let bi=e[0],bv=-99;
+ for(const i of e){const nb=b.slice();nb[i]=ai;const v=dzScore(nb,ai,hu,0);if(v>bv){bv=v;bi=i;}}
+ return bi;}
+function dzBot(b,lvl){const e=dzEmpty(b);if(!e.length)return -1;
+ const p={easy:.2,medium:.6,hard:.9,pro:1}[lvl]||.9;
+ if(p>=1)return dzBest(b,'o','x');
+ if(Math.random()<p){for(const i of e){const nb=b.slice();nb[i]='o';if(dzWinner(nb))return i;}
+   if(Math.random()<.6){for(const i of e){const nb=b.slice();nb[i]='x';if(dzWinner(nb))return i;}}
+   return e[Math.floor(Math.random()*e.length)];}
+ return e[Math.floor(Math.random()*e.length)];}
+const DZL=[['easy','آسان 🌱'],['medium','متوسط ⚡'],['hard','سخت 🔥'],['pro','حرفه‌ای 👑']];
+function dzSave(){try{localStorage.setItem('dz',JSON.stringify(DZ.score))}catch(e){}}
+function dzLoad(){try{const d=JSON.parse(localStorage.getItem('dz')||'{}');
+  DZ.score={win:d.win|0,lose:d.lose|0,draw:d.draw|0}}catch(e){}}
+function dzCell(v,i){
+ if(v==='x')return `<svg class="dz-x"><path d="M22 22L78 78M78 22L22 78"/></svg>`;
+ if(v==='o')return `<svg class="dz-o"><circle cx="50" cy="50" r="27"/></svg>`;
+ return `<span style="opacity:.35;font-weight:800">${fa(i+1)}</span>`;}
+function dzDraw(){
+ const w=dzWinner(DZ.b);
+ $('#dzBoard').innerHTML=DZ.b.map((v,i)=>{
+   const win=w&&w[1].includes(i)?' win':'';
+   return `<div class="dz-cell${win}" data-i="${i}" style="--c1:rgba(139,92,246,.2)">
+     ${dzCell(v,i)}</div>`;}).join('');
+ $$('#dzBoard .dz-cell').forEach(c=>c.onclick=()=>dzPlay(+c.dataset.i));
+ const s=DZ.score;
+ $('#dzScore').textContent=`🏆 ${fa(s.win)} برد · 💀 ${fa(s.lose)} باخت · 🤝 ${fa(s.draw)} مساوی`;
+ if(!DZ.b){ $('#dzStatus').textContent='آماده‌ای؟ یکی از سطح‌ها را انتخاب کن 😎'; return; }
+ if(w){ DZ.over=true;
+   $('#dzStatus').textContent = w[0]==='x'?'🎉 بردی! آفرین 🏆':'🤖 من بردم! دوباره؟ 😄'; return; }
+ if(!DZ.b.includes('-')){ DZ.over=true; $('#dzStatus').textContent='🤝 مساوی شد!'; return; }
+ $('#dzStatus').textContent='❌ نوبت تو';}
+function dzNew(){ DZ.b='---------'.split(''); DZ.turn='x'; DZ.over=false; dzDraw();
+ $('#dzStatus').textContent='شروع شد! نوبت تو ❌';}
+function dzPlay(i){
+ if(!DZ.b||DZ.over)return;
+ if(DZ.b[i]!=='-'){ toast('این خانه پر است'); return; }
+ buzz();
+ DZ.b[i]='x';
+ let w=dzWinner(DZ.b);
+ if(!w&&DZ.b.includes('-')){
+   const m=dzBot(DZ.b,DZ.lvl); if(m>=0)DZ.b[m]='o';
+   w=dzWinner(DZ.b);
+ }
+ if(w){ DZ.over=true;
+   if(w[0]==='x'){DZ.score.win++; toast('🎉 بردی!'); }
+   else {DZ.score.lose++; }
+   dzSave();
+ } else if(!DZ.b.includes('-')){ DZ.over=true; DZ.score.draw++; dzSave(); }
+ dzDraw();}
+function initDooz(){
+ dzLoad();
+ $('#dzLevels').innerHTML=DZL.map(([k,n])=>
+   `<span class="chip${k===DZ.lvl?' on':''}" data-lvl="${k}">${n}</span>`).join('');
+ $$('#dzLevels .chip').forEach(c=>c.onclick=()=>{
+   buzz();
+   $$('#dzLevels .chip').forEach(x=>x.classList.remove('on'));
+   c.classList.add('on'); DZ.lvl=c.dataset.lvl; dzNew();});
+ $('#dzNew').onclick=()=>{buzz();dzNew();};
+ $('#dzBot').onclick=()=>send('dooz');
+ DZ.b=null; dzDraw();}
+function initAnon(){
+ $('#anGo').onclick=()=>{ send('anon');
+   $('#anOut').textContent='✅ درخواست فرستاده شد؛ لینک اختصاصی‌ات همین حالا در چت تلگرام می‌آید 📨';};
+ $('#anHelp').onclick=()=>{
+   $('#anOut').innerHTML='🛡 <b>امنیت چت ناشناس</b><br>'+
+    '• شماره، نام و آیدی شما هرگز فاش نمی‌شود<br>'+
+    '• پیام‌های فورواردی ارسال نمی‌شوند (جلوی نشت هویت)<br>'+
+    '• محدودیت سرعت برای جلوگیری از اسپم<br>'+
+    '• ابطال لینک، بلاک، گزارش و بستن چت در هر لحظه<br>'+
+    '• افشای هویت فقط وقتی <b>هر دو نفر</b> دکمه را بزنند';};}
+
 async function openTool(name){
   show('tools');
   $('#toolBox').innerHTML=`<div class="panel">${UI[name]()}</div>`;
@@ -779,6 +919,8 @@ async function openTool(name){
     if(name==='calc') initCalc();
     if(name==='convert') initConvert();
     if(name==='clock') await initClock();
+    if(name==='dooz') initDooz();
+    if(name==='anon') initAnon();
   }catch(err){ toast('خطا در بارگذاری ابزار'); }
 }
 

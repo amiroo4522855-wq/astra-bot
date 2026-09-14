@@ -115,6 +115,7 @@ class Simulator:
         if not keyboard:
             return []
         return [b["id"] for row in keyboard.get("rows", []) for b in row.get("buttons", [])
+                if b.get("type") in (None, "", "Simple")
                 if b.get("id")]
 
     def walk(self, start_callbacks: list[str], max_steps: int = 400) -> None:

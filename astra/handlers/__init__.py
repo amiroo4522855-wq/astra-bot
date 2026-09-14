@@ -13,6 +13,8 @@ from . import music            # موزیک
 from . import ai               # هوش مصنوعی
 from . import downloader       # دانلودر
 from . import fun              # سرگرمی
+from . import games            # بازی دوز ❌⭕️
+from . import anon             # چت ناشناس 🕵️
 from . import group            # مدیریت گروه
 from . import vip              # عضویت ویژه
 from . import admin            # پنل ادمین

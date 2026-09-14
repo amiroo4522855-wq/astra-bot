@@ -145,6 +145,8 @@ class AstraBot:
             name = bot.get("name") or config.BOT_NAME
             username = bot.get("username") or config.BOT_USERNAME
             print(f"✨ {name} (@{username}) روی {label} آماده است — Ctrl+C برای توقف")
+            if username:
+                self.db.set_setting("bot_username", str(username))
         except RubikaError as exc:
             print(f"⚠️ خطا در اتصال به روبیکا: {exc}\n"
                   "   توکن را در فایل .env بررسی کن.")
@@ -156,6 +158,9 @@ class AstraBot:
                 {"command": "help", "description": "ℹ️ راهنما و پشتیبانی"},
                 {"command": "vip", "description": "💎 عضویت ویژه"},
                 {"command": "admin", "description": "👑 پنل مدیریت"},
+                {"command": "dooz", "description": "❌⭕️ بازی دوز"},
+                {"command": "anon", "description": "🕵️ چت ناشناس"},
+                {"command": "stop", "description": "🚪 بستن چت ناشناس"},
             ])
         except RubikaError:
             pass

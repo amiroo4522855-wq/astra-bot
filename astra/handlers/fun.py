@@ -24,8 +24,8 @@ STICKER_PACKS = [
     ("🌙 شب‌بخیر", "good night sticker, moon and stars, cute cartoon style"),
 ]
 
-GAMES = [("🎯 حدس عدد", "game:guess"), ("✊ سنگ‌کاغذقیچی", "game:rps"),
-         ("🎲 تاس", "game:dice")]
+GAMES = [("❌⭕️ دوز", "game:dooz"), ("🎯 حدس عدد", "game:guess"),
+         ("✊ سنگ‌کاغذقیچی", "game:rps"), ("🎲 تاس", "game:dice")]
 
 
 @lru_cache(maxsize=8)
@@ -52,6 +52,7 @@ def fun_menu(ctx: Context) -> None:
         kb()
         .row(btn("😂 جوک و خاطره", "fun:joke"), btn("📜 شعر", "fun:poem"))
         .row(btn("🔮 فال حافظ", "fun:fal"), btn("🎮 بازی‌ها", "fun:games"))
+        .row(btn("❌⭕️ بازی دوز", "menu:dooz"), btn("🕵️ چت ناشناس", "menu:anon"))
         .row(btn("🏆 چالش روزانه", "fun:challenge"), btn("🎨 استیکر و گیف", "fun:sticker"))
         .nav()
     )

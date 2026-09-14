@@ -96,6 +96,58 @@ CREATE TABLE IF NOT EXISTS logs (
     where_  TEXT DEFAULT '',
     message TEXT DEFAULT ''
 );
+CREATE TABLE IF NOT EXISTS games (
+    chat_id  TEXT PRIMARY KEY,
+    kind     TEXT DEFAULT 'dooz',
+    board    TEXT DEFAULT '---------',
+    turn     TEXT DEFAULT 'x',
+    level    TEXT DEFAULT 'hard',
+    mode     TEXT DEFAULT 'bot',
+    players  TEXT DEFAULT '{}',
+    chat_id2 TEXT DEFAULT '',
+    updated  INTEGER DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS scores (
+    user_id TEXT NOT NULL,
+    kind    TEXT DEFAULT 'dooz',
+    win     INTEGER DEFAULT 0,
+    lose    INTEGER DEFAULT 0,
+    draw    INTEGER DEFAULT 0,
+    PRIMARY KEY (user_id, kind)
+);
+CREATE TABLE IF NOT EXISTS anon_links (
+    token    TEXT PRIMARY KEY,
+    owner    TEXT NOT NULL,
+    created  INTEGER DEFAULT 0,
+    expires  INTEGER DEFAULT 0,
+    used_by  TEXT DEFAULT '',
+    status   TEXT DEFAULT 'active',
+    uses     INTEGER DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS anon_chats (
+    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    token    TEXT NOT NULL,
+    user_a   TEXT NOT NULL,
+    user_b   TEXT NOT NULL,
+    started  INTEGER DEFAULT 0,
+    last_msg INTEGER DEFAULT 0,
+    status   TEXT DEFAULT 'open',
+    reveal_a INTEGER DEFAULT 0,
+    reveal_b INTEGER DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS anon_msgs (
+    chat_id  TEXT NOT NULL,
+    msg_id   TEXT NOT NULL,
+    target   TEXT DEFAULT '',
+    created  INTEGER DEFAULT 0,
+    PRIMARY KEY (chat_id, msg_id)
+);
+CREATE TABLE IF NOT EXISTS anon_blocks (
+    user_id    TEXT NOT NULL,
+    blocked_id TEXT NOT NULL,
+    created    INTEGER DEFAULT 0,
+    PRIMARY KEY (user_id, blocked_id)
+);
 CREATE TABLE IF NOT EXISTS settings (
     key   TEXT PRIMARY KEY,
     value TEXT DEFAULT ''
@@ -497,6 +549,167 @@ class Database:
         self.set_setting(f"section:{section}", "1" if enabled else "0")
 
     # ------------------------------------------------------------------ #
+    # ------------------------------------------------------------------ #
+    # بازی‌ها (دوز و بقیه)
+    # ------------------------------------------------------------------ #
+    def save_game(self, chat_id: str, **fields) -> None:
+        fields.setdefault("kind", "dooz")
+        fields.setdefault("board", "-" * 9)
+        fields.setdefault("turn", "x")
+        fields.setdefault("level", "hard")
+        fields.setdefault("mode", "bot")
+        fields.setdefault("players", "{}")
+        fields.setdefault("chat_id2", "")
+        keys = ["kind", "board", "turn", "level", "mode", "players", "chat_id2"]
+        keys = [k for k in keys if k in fields]
+        keys.append("updated")
+        values = [fields[k] for k in keys[:-1]] + [_now()]
+        sets = ", ".join(f"{k}=excluded.{k}" for k in keys)
+        marks = ", ".join("?" for _ in keys)
+        self._execute(
+            f"INSERT INTO games (chat_id, {', '.join(keys)}) VALUES (?, {marks}) "
+            f"ON CONFLICT(chat_id) DO UPDATE SET {sets}",
+            (str(chat_id), *values),
+        )
+
+    def load_game(self, chat_id: str) -> dict | None:
+        row = self._query_one("SELECT * FROM games WHERE chat_id = ?", (str(chat_id),))
+        return dict(row) if row else None
+
+    def clear_game(self, chat_id: str) -> None:
+        self._execute("DELETE FROM games WHERE chat_id = ?", (str(chat_id),))
+
+    def bump_score(self, user_id: str, field: str, kind: str = "dooz") -> None:
+        if field not in ("win", "lose", "draw"):
+            return
+        self._execute(
+            "INSERT INTO scores (user_id, kind, win, lose, draw) VALUES (?,?,0,0,0) "
+            "ON CONFLICT DO NOTHING", (str(user_id), kind))
+        self._execute(f"UPDATE scores SET {field} = {field} + 1 WHERE user_id = ? AND kind = ?",
+                      (str(user_id), kind))
+
+    def game_score(self, user_id: str, kind: str = "dooz") -> dict:
+        row = self._query_one(
+            "SELECT win, lose, draw FROM scores WHERE user_id = ? AND kind = ?",
+            (str(user_id), kind))
+        return dict(row) if row else {"win": 0, "lose": 0, "draw": 0}
+
+    def top_scores(self, kind: str = "dooz", limit: int = 10) -> list[dict]:
+        rows = self._query_all(
+            "SELECT user_id, win, lose, draw FROM scores WHERE kind = ? "
+            "ORDER BY win DESC, draw DESC LIMIT ?", (kind, limit))
+        return [dict(r) for r in rows]
+
+    # ------------------------------------------------------------------ #
+    # چت ناشناس
+    # ------------------------------------------------------------------ #
+    def anon_create_link(self, owner: str, hours: int = 24) -> str:
+        import secrets
+        token = secrets.token_urlsafe(9).replace("-", "").replace("_", "")[:12]
+        now = _now()
+        self._execute(
+            "INSERT INTO anon_links (token, owner, created, expires, status, uses)"
+            " VALUES (?,?,?,?, 'active', 0)",
+            (token, str(owner), now, now + max(1, int(hours)) * 3600))
+        return token
+
+    def anon_link(self, token: str) -> dict | None:
+        row = self._query_one("SELECT * FROM anon_links WHERE token = ?", (str(token),))
+        return dict(row) if row else None
+
+    def anon_owner_links(self, owner: str, limit: int = 8) -> list[dict]:
+        rows = self._query_all(
+            "SELECT * FROM anon_links WHERE owner = ? ORDER BY created DESC LIMIT ?",
+            (str(owner), limit))
+        return [dict(r) for r in rows]
+
+    def anon_set_status(self, token: str, status: str) -> None:
+        self._execute("UPDATE anon_links SET status = ? WHERE token = ?", (status, str(token)))
+
+    def anon_use_link(self, token: str, user_id: str) -> None:
+        self._execute(
+            "UPDATE anon_links SET uses = uses + 1, used_by = ?, status = 'used' WHERE token = ?",
+            (str(user_id), str(token)))
+
+    def anon_open_chat(self, token: str, user_a: str, user_b: str) -> int:
+        now = _now()
+        cur = self._execute(
+            "INSERT INTO anon_chats (token, user_a, user_b, started, last_msg, status)"
+            " VALUES (?,?,?,?,?, 'open')",
+            (str(token), str(user_a), str(user_b), now, now))
+        return int(cur.lastrowid or 0)
+
+    def anon_chat(self, chat_row_id: int) -> dict | None:
+        row = self._query_one("SELECT * FROM anon_chats WHERE id = ?", (int(chat_row_id),))
+        return dict(row) if row else None
+
+    def anon_active_chat(self, user_id: str) -> dict | None:
+        row = self._query_one(
+            "SELECT * FROM anon_chats WHERE status = 'open' AND (user_a = ? OR user_b = ?)"
+            " ORDER BY last_msg DESC LIMIT 1",
+            (str(user_id), str(user_id)))
+        return dict(row) if row else None
+
+    def anon_close_chat(self, chat_row_id: int) -> None:
+        self._execute("UPDATE anon_chats SET status = 'closed' WHERE id = ?", (int(chat_row_id),))
+
+    def anon_touch_chat(self, chat_row_id: int) -> None:
+        self._execute("UPDATE anon_chats SET last_msg = ? WHERE id = ?", (_now(), int(chat_row_id)))
+
+    def anon_set_reveal(self, chat_row_id: int, user_id: str) -> None:
+        row = self.anon_chat(chat_row_id)
+        if not row:
+            return
+        field = "reveal_a" if str(row["user_a"]) == str(user_id) else "reveal_b"
+        self._execute(f"UPDATE anon_chats SET {field} = 1 WHERE id = ?", (int(chat_row_id),))
+
+    def anon_block(self, user_id: str, blocked_id: str) -> None:
+        self._execute(
+            "INSERT INTO anon_blocks (user_id, blocked_id, created) VALUES (?,?,?) "
+            "ON CONFLICT DO NOTHING", (str(user_id), str(blocked_id), _now()))
+
+    def anon_unblock(self, user_id: str, blocked_id: str) -> None:
+        self._execute("DELETE FROM anon_blocks WHERE user_id = ? AND blocked_id = ?",
+                      (str(user_id), str(blocked_id)))
+
+    def anon_is_blocked(self, user_id: str, blocked_id: str) -> bool:
+        row = self._query_one(
+            "SELECT 1 AS c FROM anon_blocks WHERE user_id = ? AND blocked_id = ?",
+            (str(user_id), str(blocked_id)))
+        return bool(row)
+
+    def anon_map_msg(self, chat_id: str, msg_id: str, target: str) -> None:
+        if not msg_id or not target:
+            return
+        self._execute(
+            "INSERT INTO anon_msgs (chat_id, msg_id, target, created) VALUES (?,?,?,?) "
+            "ON CONFLICT(chat_id, msg_id) DO UPDATE SET target=excluded.target",
+            (str(chat_id), str(msg_id), str(target), _now()))
+
+    def anon_reply_target(self, chat_id: str, msg_id: str) -> str:
+        row = self._query_one(
+            "SELECT target FROM anon_msgs WHERE chat_id = ? AND msg_id = ?",
+            (str(chat_id), str(msg_id)))
+        return str(row["target"] or "") if row else ""
+
+    def anon_prune(self, older_than_days: int = 3) -> None:
+        limit = _now() - older_than_days * 86400
+        self._execute("DELETE FROM anon_msgs WHERE created < ?", (limit,))
+        self._execute("DELETE FROM anon_links WHERE expires < ?", (limit,))
+        self._execute(
+            "UPDATE anon_chats SET status = 'expired' WHERE status = 'open' AND last_msg < ?",
+            (_now() - 3 * 86400,))
+
+    def anon_count(self) -> dict:
+        open_chats = self._query_one(
+            "SELECT COUNT(*) AS c FROM anon_chats WHERE status = 'open'")
+        links = self._query_one(
+            "SELECT COUNT(*) AS c FROM anon_links WHERE status = 'active'")
+        return {"open": int(open_chats["c"]) if open_chats else 0,
+                "links": int(links["c"]) if links else 0}
+
+
+
     def close(self) -> None:
         with self._lock:
             self._conn.close()

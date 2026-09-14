@@ -138,6 +138,28 @@ def channel_from_button(ctx: Context) -> None:
     _channel(ctx, {})
 
 
+def _dooz(ctx: Context, data: dict) -> None:
+    """بازی دوز: اگر گفتگوی فعالی هست ادامه می‌دهد، وگرنه منوی سطح را نشان می‌دهد."""
+    from .games import dooz_levels, dooz_menu
+    level = str(data.get("level") or "").strip()
+    if level in ("easy", "medium", "hard", "pro"):
+        ctx.arg = level
+        from .games import dooz_start
+        dooz_start(ctx)
+        return
+    dooz_levels(ctx) if not ctx.db.load_game(ctx.chat_id) else dooz_menu(ctx)
+
+
+def _anon(ctx: Context, data: dict) -> None:
+    """ساخت لینک چت ناشناس (از داخل مینی‌اپ)."""
+    from .anon import active_chat_panel, anon_new
+    chat_row = ctx.db.anon_active_chat(ctx.sender_id)
+    if chat_row:
+        active_chat_panel(ctx, chat_row)
+        return
+    anon_new(ctx)
+
+
 def _gold(ctx: Context, data: dict) -> None:
     from .practical import _report
     ctx.send("⏳ دارم نرخ طلا و سکه رو می‌گیرم…")
@@ -314,5 +336,7 @@ ACTIONS = {
     "vip": _vip,
     "support": _support,
     "joke": _joke,
+    "dooz": _dooz,
+    "anon": _anon,
     "profile": _profile,
 }
