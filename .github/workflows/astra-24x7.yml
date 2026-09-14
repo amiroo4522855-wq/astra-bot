@@ -1,0 +1,71 @@
+name: Astra Bot 24x7
+
+# اجرای همیشگی ربات روی تلگرام (بدون نیاز به سرور شخصی)
+# هر ۶ ساعت یک job تا ۳۵۰ دقیقه ربات را به‌صورت Long Polling اجرا می‌کند.
+
+on:
+  schedule:
+    - cron: "3 */6 * * *"      # ساعت ۰:۰۳، ۶:۰۳، ۱۲:۰۳، ۱۸:۰۳ (UTC)
+  workflow_dispatch:           # اجرای دستی از تب Actions
+  push:
+    paths:
+      - ".github/workflows/astra-24x7.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: astra-bot-runner
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    env:
+      DB_PATH: state/astra.db
+      PLATFORM: telegram
+      TZ: Asia/Tehran
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      ADMIN_IDS: ${{ secrets.ADMIN_IDS }}
+      AI_API_KEY: ${{ secrets.AI_API_KEY }}
+      CARD_NUMBER: ${{ secrets.CARD_NUMBER }}
+      CARD_OWNER: ${{ secrets.CARD_OWNER }}
+
+    steps:
+      - name: دریافت کد
+        uses: actions/checkout@v4
+
+      - name: تنظیم پایتون
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: نصب وابستگی‌ها
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -q yt-dlp gTTS "qrcode[pil]"
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+
+      - name: حذف وب‌هوک (اطمینان از فعال بودن polling)
+        run: |
+          curl -s "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/deleteWebhook?drop_pending_updates=false" > /dev/null
+          echo "✅ polling فعال است"
+
+      - name: اجرای ربات
+        run: timeout 20400 python -u main.py --platform telegram || true
+
+      - name: ذخیره‌ی دیتابیس (کاربران، اشتراک‌ها، آمار)
+        run: |
+          git config user.name "astra-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add -f state/astra.db 2>/dev/null || true
+          if ! git diff --quiet --cached; then
+            git commit -m "🗄 بروزرسانی دیتابیس ربات [skip ci]"
+            git pull --rebase origin main || true
+            git push origin main || echo "ذخیره‌سازی ناموفق بود"
+          else
+            echo "تغییری در دیتابیس نبود"
+          fi
