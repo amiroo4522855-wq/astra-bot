@@ -13,6 +13,7 @@ CITIES_FILE = DATA_DIR / "cities.json"
 
 GEO_URL = "https://geocoding-api.open-meteo.com/v1/search"
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
+AIR_URL = "https://air-quality-api.open-meteo.com/v1/air-quality"
 
 # معادل‌سازی نام شهرهای پرکاربرد برای جستجوی دقیق‌تر
 CITY_ALIASES = {
@@ -177,6 +178,46 @@ def forecast(place: Place, days: int = 3) -> dict:
     }
 
 
+def full_forecast(place: Place, days: int = 7) -> dict:
+    """پیش‌بینی کامل: وضعیت فعلی، ساعتی و روزانه (برای نمایش حرفه‌ای)."""
+    return get_json(
+        FORECAST_URL,
+        params={
+            "latitude": place.lat, "longitude": place.lon,
+            "current": ("temperature_2m,apparent_temperature,relative_humidity_2m,"
+                        "weather_code,wind_speed_10m,wind_gusts_10m,pressure_msl,"
+                        "uv_index,precipitation,cloud_cover,is_day"),
+            "hourly": "temperature_2m,weather_code,precipitation_probability",
+            "daily": ("weather_code,temperature_2m_max,temperature_2m_min,sunrise,"
+                      "sunset,uv_index_max,precipitation_probability_max,wind_speed_10m_max"),
+            "timezone": "auto", "forecast_days": days,
+        },
+        timeout=14,
+    ) or {}
+
+
+def air_quality(place: Place) -> dict:
+    """کیفیت هوا (شاخص اروپایی، PM2.5 و PM10)."""
+    return get_json(
+        AIR_URL,
+        params={"latitude": place.lat, "longitude": place.lon,
+                "current": "european_aqi,pm2_5,pm10"},
+        timeout=12,
+    ) or {}
+
+
+def aqi_label(aqi: float) -> tuple[str, str]:
+    if aqi <= 20:
+        return "هوای پاک", "🟢"
+    if aqi <= 40:
+        return "هوای سالم", "🟡"
+    if aqi <= 60:
+        return "کمی آلوده", "🟠"
+    if aqi <= 80:
+        return "آلوده", "🔴"
+    return "بسیار آلوده", "🟣"
+
+
 def render(city_query: str) -> str:
     """خروجی آماده‌ی نمایش برای کاربر."""
     place = geocode(city_query)
@@ -201,7 +242,7 @@ def render(city_query: str) -> str:
     if dates:
         lines.append("───────────────")
         lines.append("📅 پیش‌بینی روزهای آینده:")
-        for index, day in enumerate(dates[:3]):
+        for index, day in enumerate(dates[:4]):
             code = (daily.get("weather_code") or [0])[index]
             high = (daily.get("temperature_2m_max") or [0])[index]
             low = (daily.get("temperature_2m_min") or [0])[index]
@@ -209,5 +250,72 @@ def render(city_query: str) -> str:
             lines.append(
                 f"▫️ {en_to_fa(day[5:])} · {emoji_day} {label_day} · "
                 f"{en_to_fa(round(high))}° / {en_to_fa(round(low))}°"
+            )
+    return "\n".join(lines)
+
+
+def render_full(city_query: str) -> str:
+    """گزارش کامل‌تر: فشار، باد، UV، طلوع/غروب و کیفیت هوا."""
+    place = geocode(city_query)
+    if place is None:
+        raise ServiceError("شهر پیدا نشد")
+    data = full_forecast(place)
+    cur = data.get("current") or {}
+    daily = data.get("daily") or {}
+    label, emoji = describe(int(cur.get("weather_code", 0)))
+    title = place.name + (f" ({place.admin})" if place.admin else "")
+
+    lines = [
+        f"{emoji} آب‌وهوای {title}",
+        "───────────────",
+        f"🌡 دما: {en_to_fa(round(float(cur.get('temperature_2m', 0)), 1))}°C",
+        f"🤔 حس واقعی: {en_to_fa(round(float(cur.get('apparent_temperature', 0)), 1))}°C",
+    ]
+    pressure = cur.get("pressure_msl")
+    if pressure:
+        lines.append(f"📊 فشار هوا: {en_to_fa(round(float(pressure)))} hPa")
+    lines.append(f"💧 رطوبت: {en_to_fa(int(cur.get('relative_humidity_2m', 0)))}٪")
+    wind = float(cur.get("wind_speed_10m", 0) or 0)
+    gust = float(cur.get("wind_gusts_10m", 0) or 0)
+    lines.append(f"💨 باد: {en_to_fa(round(wind, 1))} km/h"
+                 + (f" · تندباد {en_to_fa(round(gust, 1))}" if gust else ""))
+    uv = cur.get("uv_index")
+    if uv is not None:
+        level = "کم" if uv < 3 else "متوسط" if uv < 6 else "زیاد" if uv < 8 else "بسیار زیاد"
+        lines.append(f"☀️ شاخص UV: {en_to_fa(round(float(uv), 1))} ({level})")
+    clouds = cur.get("cloud_cover")
+    if clouds is not None:
+        lines.append(f"☁️ ابرناکی: {en_to_fa(int(clouds))}٪")
+    lines.append(f"📌 وضعیت: {label}")
+
+    sunrise = (daily.get("sunrise") or [""])[0]
+    sunset = (daily.get("sunset") or [""])[0]
+    if sunrise and sunset:
+        lines.append("───────────────")
+        lines.append(f"🌅 طلوع: {en_to_fa(sunrise[-5:])} · 🌇 غروب: {en_to_fa(sunset[-5:])}")
+
+    try:
+        air = (air_quality(place).get("current") or {})
+        aqi = air.get("european_aqi")
+        if aqi is not None:
+            text_aqi, emoji_aqi = aqi_label(float(aqi))
+            lines.append(f"{emoji_aqi} کیفیت هوا: {text_aqi} (AQI {en_to_fa(round(float(aqi)))})")
+    except Exception:
+        pass
+
+    dates = daily.get("time") or []
+    if dates:
+        lines.append("───────────────")
+        lines.append("🗓 پیش‌بینی ۵ روز:")
+        for index, day in enumerate(dates[:5]):
+            code = (daily.get("weather_code") or [0])[index]
+            high = (daily.get("temperature_2m_max") or [0])[index]
+            low = (daily.get("temperature_2m_min") or [0])[index]
+            rain = (daily.get("precipitation_probability_max") or [None])[index]
+            label_day, emoji_day = describe(code)
+            extra = f" · ☔️ {en_to_fa(int(rain))}٪" if rain is not None else ""
+            lines.append(
+                f"▫️ {en_to_fa(day[5:])} · {emoji_day} {label_day} · "
+                f"{en_to_fa(round(high))}° / {en_to_fa(round(low))}°{extra}"
             )
     return "\n".join(lines)

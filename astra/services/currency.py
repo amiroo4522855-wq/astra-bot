@@ -5,6 +5,10 @@
 """
 from __future__ import annotations
 
+import json
+import re
+import time
+
 from .. import config
 from ..core.utils import en_to_fa, money
 from .http import ServiceError, get_json
@@ -58,6 +62,104 @@ FOREX_FA = {
     "یوان": "CNY", "ین": "JPY", "روبل": "RUB", "فرانک": "CHF", "دلار کانادا": "CAD",
     "دینار": "IQD", "افغانی": "AFN", "ریال عربستان": "SAR", "روپیه": "INR",
 }
+
+
+# برچسب‌هایی که در پیام کانال‌های قیمت جست‌وجو می‌شوند
+CHANNEL_LABELS = {
+    "دلار": "💵 دلار آمریکا", "یورو": "💶 یورو", "پوند": "💷 پوند انگلیس",
+    "درهم": "🕌 درهم امارات", "لیر": "🇹🇷 لیر ترکیه", "یوان": "🇨🇳 یوان چین",
+    "سکه امامی": "🪙 سکه امامی", "سکه تمام": "🪙 سکه امامی", "سکه": "🪙 سکه امامی",
+    "نیم سکه": "🥈 نیم‌سکه", "نیم‌سکه": "🥈 نیم‌سکه",
+    "ربع سکه": "🥉 ربع‌سکه", "ربع‌سکه": "🥉 ربع‌سکه",
+    "طلای ۱۸": "✨ طلای ۱۸ عیار", "طلای 18": "✨ طلای ۱۸ عیار",
+    "طلای ۲۴": "💛 طلای ۲۴ عیار", "طلای 24": "💛 طلای ۲۴ عیار",
+    "مثقال": "⚖️ مثقال طلا", "انس": "🌍 انس جهانی طلا", "اونس": "🌍 انس جهانی طلا",
+    "تتر": "🟢 تتر", "بیت‌کوین": "🟠 بیت‌کوین", "بیت کوین": "🟠 بیت‌کوین",
+    "اتریوم": "🟣 اتریوم",
+}
+CHANNEL_KEY = "prices:channel"
+
+
+def _to_en_digits(text: str) -> str:
+    return "".join("0123456789"["۰۱۲۳۴۵۶۷۸۹".index(c)] if c in "۰۱۲۳۴۵۶۷۸۹" else c
+                   for c in text)
+
+
+def parse_prices(text: str) -> list[tuple[str, float, str]]:
+    """استخراج قیمت از متن یک کانال (مثل «💵 دلار: ۱۰۸,۵۰۰ تومان»).
+
+    خروجی: (برچسب، مقدار، واحد) — واحد یا «تومان» است یا «دلار».
+    """
+    rows: list[tuple[str, float, str]] = []
+    seen: set[str] = set()
+    number_re = re.compile(r"[\d۰-۹][\d۰-۹,\.\s]{2,}")
+
+    for raw_line in (text or "").splitlines():
+        line = raw_line.strip()
+        if not line or len(line) > 200:
+            continue
+        for key, label in CHANNEL_LABELS.items():
+            if key not in line or label in seen:
+                continue
+            # فقط عددی که «بعد از برچسب» آمده را می‌گیریم (نه عددِ خود برچسب)
+            position = line.find(key)
+            segment = line[position + len(key):]
+            found = number_re.findall(segment) or number_re.findall(line)
+            if not found:
+                continue
+            number = _to_en_digits(found[0].replace(",", "").replace("٬", "").replace(" ", "").strip())
+            try:
+                value = float(number)
+            except ValueError:
+                continue
+            if value <= 0:
+                continue
+
+            unit = "تومان"
+            if "ریال" in line:
+                value /= 10
+            elif ("دلار" in line or "$" in line) and not any(
+                    word in line for word in ("تومان", "ریال")):
+                unit = "دلار"
+
+            if unit == "تومان" and value < 50:      # عدد غیرمنطقی
+                continue
+            rows.append((label, value, unit))
+            seen.add(label)
+            break
+    return rows
+
+
+def save_channel_prices(db, text: str) -> int:
+    """ذخیره‌ی قیمت‌های استخراج‌شده از کانال (برای استفاده در گزارش)."""
+    rows = parse_prices(text)
+    if not rows:
+        return 0
+    payload = {"ts": time.time(), "rows": [list(row) for row in rows]}
+    db.set_setting(CHANNEL_KEY, json.dumps(payload, ensure_ascii=False))
+    return len(rows)
+
+
+def channel_prices(db, max_age: int = 2400) -> list[tuple[str, str, float]]:
+    """خواندن قیمت‌های کانال اگر تازه باشند (پیش‌فرض: ۴۰ دقیقه)."""
+    raw = db.get_setting(CHANNEL_KEY, "")
+    if not raw:
+        return []
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError:
+        return []
+    if time.time() - float(payload.get("ts", 0)) > max_age:
+        return []
+    rows = []
+    for item in payload.get("rows", []):
+        if len(item) == 2:
+            label, value = item
+            unit = "تومان"
+        else:
+            label, value, unit = item
+        rows.append((label, f"{money(round(float(value)))} {unit}", float(value)))
+    return rows
 
 
 def _to_toman(value: float, unit: str) -> float:

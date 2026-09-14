@@ -154,6 +154,12 @@ def dispatch(ctx: Context) -> None:
     """تعیین handler مناسب بر اساس نوع آپدیت."""
     update: Update = ctx.update
 
+    # ۰) پست کانال (مثل کانال قیمت) — فقط استخراج اطلاعات، بدون پاسخ
+    if update.chat_type == "channel":
+        from ..handlers.channel import handle_channel_post
+        handle_channel_post(ctx)
+        return
+
     # ۱) کلیک روی دکمه
     if update.kind == "callback" and update.button_id:
         handler, route_name, arg = find_callback_route(update.button_id)

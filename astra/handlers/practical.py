@@ -95,8 +95,15 @@ def weather_do(ctx: Context) -> None:
 def show_weather(ctx: Context, city: str) -> None:
     ctx.clear_state()
     try:
-        report = weather.render(city)
-    except Exception as exc:
+        report = weather.render_full(city)
+    except Exception:
+        try:
+            report = weather.render(city)
+        except Exception as exc:
+            fail(ctx, "weather", exc,
+                 "🏙 این شهر رو پیدا نکردم!\n"
+                 "اسم شهر رو دقیق‌تر بنویس (مثال: کرمانشاه) 🙏")
+            return
         fail(ctx, "weather", exc,
              "🏙 این شهر رو پیدا نکردم!\n"
              "اسم شهر رو دقیق‌تر بنویس (مثال: تهران) 🙏")
@@ -123,13 +130,18 @@ def _report(ctx: Context, kind: str) -> None:
         if not rows:
             raise RuntimeError("داده‌ای دریافت نشد")
     except Exception as tgju_error:
-        if kind == "crypto":
+        # منبع دوم: کانال قیمتی که ربات در آن ادمین است
+        rows = currency.channel_prices(ctx.db)
+        if not rows and kind == "crypto":
             try:
                 rows = currency.fetch_crypto()
             except Exception as crypto_error:
-                fail(ctx, "market", crypto_error, MARKET_DOWN)
-                return
-        else:
+                if not rows:
+                    fail(ctx, "market", crypto_error, MARKET_DOWN)
+                    return
+        if not rows:
+            rows = currency.channel_prices(ctx.db)
+        if not rows:
             fail(ctx, "market", tgju_error, MARKET_DOWN)
             return
 

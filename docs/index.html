@@ -210,6 +210,44 @@ button.mini{font-size:11.5px;padding:7px 12px;border-radius:11px}
 @keyframes spFade{from{opacity:0;transform:scale(1.06)}to{opacity:1;transform:none}}
 body.ready .hero{animation:spFade .7s var(--e) both}
 
+/* ============ آب‌وهوای حرفه‌ای ============ */
+.wx{position:relative;overflow:hidden;border-radius:22px;padding:18px;border:1px solid var(--line2);
+ background:linear-gradient(160deg,rgba(139,92,246,.22),rgba(34,211,238,.09));backdrop-filter:blur(14px);
+ animation:pop .5s var(--e) both}
+.wx.night{background:linear-gradient(160deg,rgba(49,46,129,.35),rgba(15,23,42,.2))}
+.wx .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.wx .city{font-size:15.5px;font-weight:800}
+.wx .date{font-size:11.5px;color:var(--mut);margin-top:4px;line-height:1.6}
+.wx .temp{font-size:54px;font-weight:800;line-height:1.05;letter-spacing:-1.5px;margin-top:8px}
+.wx .cond{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:4px}
+.wx .cond svg{width:28px;height:28px;color:#fcd34d}
+.wx .feels{font-size:11.5px;color:var(--mut);margin-top:8px}
+.mgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:13px}
+.mcard{background:var(--panel2);border:1px solid var(--line2);border-radius:15px;padding:11px;
+ display:flex;gap:9px;align-items:center;animation:fade .4s var(--e) both}
+.mcard svg{width:20px;height:20px;color:#a5b4fc;flex:0 0 auto}
+.mcard .l{font-size:10.5px;color:var(--mut)}
+.mcard .v{font-size:13px;font-weight:700;margin-top:2px}
+.hours{display:flex;gap:8px;overflow-x:auto;padding:10px 2px;margin-top:13px}
+.hour{flex:0 0 auto;min-width:64px;text-align:center;background:var(--panel2);border:1px solid var(--line2);
+ border-radius:14px;padding:9px 6px}
+.hour .t{font-size:10.5px;color:var(--mut)}
+.hour svg{width:21px;height:21px;margin:5px auto;color:#fcd34d}
+.hour .d{font-size:12.5px;font-weight:700}
+.days{margin-top:13px}
+.day{display:flex;align-items:center;gap:9px;padding:8px 2px;border-bottom:1px dashed var(--line2);font-size:12.5px}
+.day:last-child{border-bottom:0}
+.day .nm{width:66px;color:var(--mut);font-size:11.5px;flex:0 0 auto}
+.day svg{width:18px;height:18px;color:#a5b4fc;flex:0 0 auto}
+.day .bar{flex:1;height:5px;border-radius:5px;background:rgba(255,255,255,.09);position:relative;overflow:hidden}
+.day .bar i{position:absolute;top:0;bottom:0;border-radius:5px;
+ background:linear-gradient(90deg,#22d3ee,#8b5cf6)}
+.day .mm{width:80px;text-align:left;font-weight:700;flex:0 0 auto}
+.aqi{display:flex;align-items:center;gap:10px;margin-top:13px;background:var(--panel2);
+ border:1px solid var(--line2);border-radius:15px;padding:12px;font-size:12.5px}
+.aqi .d2{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+.wxup{display:flex;justify-content:space-between;align-items:center;margin-top:11px;font-size:10.5px;color:var(--mut)}
+
 /* ============ پولیش ظاهری ============ */
 .card{border-radius:20px;padding:16px 8px 13px}
 .card .ic{width:30px;height:30px}
@@ -272,6 +310,18 @@ body.ready .hero{animation:spFade .7s var(--e) both}
   <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 10.5l8-6.5 8 6.5V20a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 014 20v-9.5z"/><path d="M9.5 21.5v-7h5v7"/></symbol>
   <symbol id="i-tools" viewBox="0 0 24 24"><path d="M14.5 6.5a3.5 3.5 0 004.6 4.6l-8 8a2.6 2.6 0 11-3.7-3.7l8-8z"/><path d="M6.5 6.5l2 2M4.5 10.5l2.5-.5"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M15 9V6.5A2.5 2.5 0 0012.5 4H6.5A2.5 2.5 0 004 6.5v6A2.5 2.5 0 006.5 15H9"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M4.9 19.1l1.7-1.7M17.4 6.6l1.7-1.7"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19.5H8a4.5 4.5 0 010-9 6 6 0 0111.4 2.2 3.4 3.4 0 01-1.9 6.8z"/></symbol>
+  <symbol id="i-rain" viewBox="0 0 24 24"><path d="M17 15.5H8a4.2 4.2 0 010-8.4 5.6 5.6 0 0110.6 2 3.2 3.2 0 01-1.6 6.4z"/><path d="M9 18.5l-.8 2M12.5 18.5l-.8 2M16 18.5l-.8 2"/></symbol>
+  <symbol id="i-snow" viewBox="0 0 24 24"><path d="M17 15.5H8a4.2 4.2 0 010-8.4 5.6 5.6 0 0110.6 2 3.2 3.2 0 01-1.6 6.4z"/><path d="M9 19h.01M12 20.5h.01M15 19h.01"/></symbol>
+  <symbol id="i-storm" viewBox="0 0 24 24"><path d="M17 15H8a4.2 4.2 0 010-8.4 5.6 5.6 0 0110.6 2A3.2 3.2 0 0117 15z"/><path d="M13 16.5l-2.5 3.5h2.5l-1.5 3"/></symbol>
+  <symbol id="i-fog" viewBox="0 0 24 24"><path d="M17 14H8a4.2 4.2 0 010-8.4 5.6 5.6 0 0110.6 2A3.2 3.2 0 0117 14z"/><path d="M4 18h16M6.5 21h11"/></symbol>
+  <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3.5s6 6.1 6 10a6 6 0 11-12 0c0-3.9 6-10 6-10z"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 17a8 8 0 1116 0"/><path d="M12 17l4-4.5"/><circle cx="12" cy="17" r="1.2"/></symbol>
+  <symbol id="i-uv" viewBox="0 0 24 24"><path d="M4 17a8 8 0 1116 0"/><path d="M8.5 20l1.5-3 1.5 3M14.5 20l1.5-3 1.5 3"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-sunrise" viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M8 13l4-4 4 4"/><path d="M12 9V4M6.5 10.5L4.5 8.5M17.5 10.5l2-2"/></symbol>
   <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 10-2.3 5.7"/><path d="M20 5.5V11h-5.5"/></symbol>
 </svg>
 
@@ -573,7 +623,8 @@ const UI={
   <div class="row" style="margin-top:8px">
    ${['تهران','مشهد','شیراز','اصفهان','تبریز','اهواز'].map(c=>`<span class="chip" data-city="${c}">${c}</span>`).join('')}
   </div>
-  <div class="out" id="wOut">در حال آماده‌سازی فهرست شهرها…</div>`,
+  <div id="wCard"></div>
+  <div class="out hidden" id="wOut"></div>`,
 
  market:()=>`<h2><svg class="ic"><use href="#i-market"/></svg> ارز، طلا و سکه</h2>
   <div class="row"><button id="mGo">دریافت نرخ لحظه‌ای</button>
@@ -750,9 +801,120 @@ async function initWeather(){
   $('#statBadge').textContent=`📍 ${fa(list.length)} شهر · ${fa(provs.length)} استان`;
   if(list.length) weather($('#wCity').value||'تهران');
 }
+const WX = {
+ 0:['sun','آفتابی'],1:['sun','کمی ابری'],2:['cloud','نیمه‌ابری'],3:['cloud','ابری'],
+ 45:['fog','مه'],48:['fog','مه'],51:['rain','نم‌نم'],53:['rain','باران'],55:['rain','باران شدید'],
+ 56:['rain','باران ریز'],57:['rain','باران شدید'],61:['rain','باران'],63:['rain','باران'],
+ 65:['rain','باران شدید'],66:['rain','باران یخی'],67:['rain','باران شدید'],
+ 71:['snow','برف'],73:['snow','برف'],75:['snow','برف شدید'],77:['snow','دانه برف'],
+ 80:['rain','رگبار'],81:['rain','رگبار'],82:['rain','رگبار شدید'],
+ 85:['snow','رگبار برف'],86:['snow','رگبار برف شدید'],
+ 95:['storm','رعد و برق'],96:['storm','رعد و برق با تگرگ'],99:['storm','رعد و برق شدید'],
+};
+function wxIcon(code, isDay){
+  const pair = WX[code] || ['cloud','—'];
+  const name = (pair[0]==='sun' && isDay===0) ? 'moon' : pair[0];
+  return `<svg class="ic"><use href="#i-${name}"/></svg>`;
+}
+function wxLabel(code){ return (WX[code]||['','—'])[1]; }
+function aqiInfo(v){
+  if(v<=20) return ['هوای پاک','#34d399'];
+  if(v<=40) return ['هوای سالم','#a3e635'];
+  if(v<=60) return ['کمی آلوده','#fbbf24'];
+  if(v<=80) return ['آلوده','#fb7185'];
+  return ['بسیار آلوده','#c084fc'];
+}
+function mcard(icon,label,value){
+  return `<div class="mcard"><svg class="ic"><use href="#i-${icon}"/></svg>
+    <div><div class="l">${label}</div><div class="v">${value}</div></div></div>`;
+}
+function weatherCard(title, f, air){
+  const c=f.current||{}, d=f.daily||{}, h=f.hourly||{};
+  const isDay = c.is_day;
+  const cur = Math.round(c.temperature_2m||0);
+  const feels = Math.round(c.apparent_temperature||0);
+  const todayMax = Math.round((d.temperature_2m_max||[])[0]||0);
+  const todayMin = Math.round((d.temperature_2m_min||[])[0]||0);
+  const now = new Date();
+  const clock = `${fa(String(now.getHours()).padStart(2,'0'))}:${fa(String(now.getMinutes()).padStart(2,'0'))}`;
+
+  let html = `<div class="wx${isDay===0?' night':''}">
+    <div class="top">
+      <div><div class="city">${title}</div>
+        <div class="date">${jalaliNow()} · ساعت ${clock}</div></div>
+      <div style="text-align:left">
+        <div class="temp">${fa(cur)}°</div>
+        <div class="cond">${wxIcon(c.weather_code, isDay)}<span>${wxLabel(c.weather_code)}</span></div>
+      </div>
+    </div>
+    <div class="feels">🤔 حس واقعی: ${fa(feels)}° · امروز ${fa(todayMax)}° / ${fa(todayMin)}°</div>
+    <div class="mgrid">
+      ${mcard('drop','رطوبت', fa(c.relative_humidity_2m||0)+'٪')}
+      ${mcard('weather','باد', fa(Math.round(c.wind_speed_10m||0))+' km/h')}
+      ${mcard('gauge','فشار هوا', fa(Math.round(c.pressure_msl||0))+' hPa')}
+      ${mcard('uv','شاخص UV', fa(Math.round((c.uv_index||0)*10)/10))}
+      ${mcard('cloud','ابرناکی', fa(c.cloud_cover||0)+'٪')}
+      ${mcard('sunrise','طلوع / غروب', `${((d.sunrise||[''])[0]||'').slice(-5)} / ${((d.sunset||[''])[0]||'').slice(-5)}`)}
+    </div>`;
+
+  // پیش‌بینی ساعتی
+  const times = h.time||[];
+  let startIdx = 0;
+  if(c.time) { const i = times.indexOf(c.time); if(i>=0) startIdx = i; }
+  if(times.length){
+    const items = times.slice(startIdx, startIdx+12).map((t,i)=>{
+      const idx = startIdx+i;
+      const code = (h.weather_code||[])[idx];
+      const temp = Math.round((h.temperature_2m||[])[idx]||0);
+      const pop = (h.precipitation_probability||[])[idx];
+      return `<div class="hour"><div class="t">${fa(t.slice(11,16))}</div>
+        ${wxIcon(code,1)}<div class="d">${fa(temp)}°</div>
+        <div class="mut" style="font-size:9.5px">${pop?fa(pop)+'٪':''}</div></div>`;
+    }).join('');
+    html += `<div class="mut" style="margin-top:14px">🕓 ۱۲ ساعت آینده</div>
+      <div class="hours">${items}</div>`;
+  }
+
+  // پیش‌بینی هفتگی
+  const days = d.time||[];
+  if(days.length){
+    const maxes = d.temperature_2m_max||[], mins = d.temperature_2m_min||[];
+    const all = [...maxes, ...mins].filter(x=>typeof x==='number');
+    const lo = Math.min(...all), hi = Math.max(...all);
+    const rows = days.slice(0,7).map((day,i)=>{
+      const date = new Date(day+'T00:00:00');
+      const name = i===0 ? 'امروز' : JW[(date.getDay()+2)%7];
+      const mx = Math.round(maxes[i]||0), mn = Math.round(mins[i]||0);
+      const span = Math.max(hi-lo, 1);
+      const left = ((mn-lo)/span)*100, width = Math.max(((mx-mn)/span)*100, 6);
+      const pop = (d.precipitation_probability_max||[])[i];
+      return `<div class="day"><span class="nm">${name}</span>
+        ${wxIcon((d.weather_code||[])[i],1)}
+        <span class="bar"><i style="left:${left}%;width:${width}%"></i></span>
+        <span class="mm">${fa(mx)}° / ${fa(mn)}°</span>
+        <span class="mut" style="width:34px;text-align:left">${pop?fa(pop)+'٪':''}</span></div>`;
+    }).join('');
+    html += `<div class="mut" style="margin-top:14px">🗓 ۷ روز آینده</div><div class="days">${rows}</div>`;
+  }
+
+  // کیفیت هوا
+  const a = (air||{}).current||{};
+  if(a.european_aqi!==undefined){
+    const [txt,color] = aqiInfo(a.european_aqi);
+    html += `<div class="aqi"><span class="d2" style="background:${color}"></span>
+      <span>کیفیت هوا: <b>${txt}</b> (AQI ${fa(Math.round(a.european_aqi))})</span>
+      <span class="mut" style="margin-right:auto">PM2.5: ${fa(Math.round(a.pm2_5||0))} · PM10: ${fa(Math.round(a.pm10||0))}</span></div>`;
+  }
+  html += `<div class="wxup"><span>منبع: Open-Meteo · ${clock}</span>
+    <span>برای گرفتن دوباره روی شهر بزن</span></div></div>`;
+  return html;
+}
+
 async function weather(q){
-  const out=$('#wOut'); if(!q){toast('یک شهر انتخاب کن');return;}
-  out.innerHTML='<div class="sk"></div><div class="sk" style="width:70%"></div><div class="sk" style="width:45%"></div>';
+  const card=$('#wCard'), out=$('#wOut');
+  if(!q){ toast('یک شهر انتخاب کن'); return; }
+  out.classList.add('hidden');
+  card.innerHTML='<div class="sk" style="height:120px"></div><div class="sk" style="width:70%"></div>';
   try{
     let lat,lon,label=q;
     const ir=(await loadCities()).find(c=>c.name===q);
@@ -762,23 +924,26 @@ async function weather(q){
     else{
       const g=await jget('https://geocoding-api.open-meteo.com/v1/search?count=1&language=fa&format=json&name='+encodeURIComponent(q));
       const r=(g.results||[])[0]; if(!r) throw new Error('شهر پیدا نشد — نام را دقیق‌تر بنویس');
-      lat=r.latitude;lon=r.longitude;label=r.name+(r.country? ' · '+r.country:'');
+      lat=r.latitude;lon=r.longitude;label=r.name+(r.country?' · '+r.country:'');
     }
-    const f=await jget(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
+    const base='https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon
       +'&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m'
-      +'&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=4');
-    const c=f.current,[txt,emo]=WMO[c.weather_code]||['نامشخص','🌡'], d=f.daily;
-    out.innerHTML=`${emo} آب‌وهوای <b>${label}</b>\n───────────────\n`+
-     `🌡 دما: ${fa(Math.round(c.temperature_2m))}°C\n`+
-     `🤔 حس واقعی: ${fa(Math.round(c.apparent_temperature))}°C\n`+
-     `💧 رطوبت: ${fa(c.relative_humidity_2m)}٪\n`+
-     `💨 باد: ${fa(Math.round(c.wind_speed_10m))} km/h\n📌 ${txt}\n`+
-     `───────────────\n📅 پیش‌بینی ۴ روز:\n`+
-     (d.time||[]).slice(0,4).map((day,i)=>{
-       const[,e2]=WMO[d.weather_code[i]]||['','🌡'];
-       return `▫️ ${fa(day.slice(5))} ${e2} ${fa(Math.round(d.temperature_2m_max[i]))}° / ${fa(Math.round(d.temperature_2m_min[i]))}°`;
-     }).join('\n');
-  }catch(e){ out.textContent='⚠️ '+e.message; }
+      +',wind_gusts_10m,pressure_msl,uv_index,precipitation,cloud_cover,is_day'
+      +'&hourly=temperature_2m,weather_code,precipitation_probability'
+      +'&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_probability_max'
+      +'&timezone=auto&forecast_days=7';
+    const airUrl='https://air-quality-api.open-meteo.com/v1/air-quality?latitude='+lat
+      +'&longitude='+lon+'&current=european_aqi,pm2_5,pm10';
+    const [f, air] = await Promise.all([
+      jget(base),
+      jget(airUrl).catch(()=>({}))
+    ]);
+    card.innerHTML = weatherCard(label, f, air);
+  }catch(e){
+    card.innerHTML='';
+    out.classList.remove('hidden');
+    out.textContent='⚠️ '+e.message;
+  }
 }
 
 /* ---------- نرخ ارز و طلا (دقیق) ---------- */
