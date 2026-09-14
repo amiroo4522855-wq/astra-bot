@@ -526,6 +526,7 @@ const SYS=[
  {k:'sendvip',i:'vip',t:'عضویت ویژه',s:'بدون محدودیت'},
  {k:'group',i:'group',t:'مدیریت گروه',s:'تنظیمات و دستورات',act:'info'},
  {k:'sendprofile',i:'user',t:'پروفایل من',s:'اشتراک و آمار',act:'profile'},
+ {k:'sendchannel',i:'market',t:'قیمت کانال',s:'آخرین نرخ‌ها'},
 ];
 
 function cardHtml(it,iconKey,idx){
@@ -629,12 +630,14 @@ const UI={
  market:()=>`<h2><svg class="ic"><use href="#i-market"/></svg> ارز، طلا و سکه</h2>
   <div class="row"><button id="mGo">دریافت نرخ لحظه‌ای</button>
    <button class="ghost" id="mBot">گرفتن از ربات 🥇</button></div>
-  <div class="out" id="mOut">در حال دریافت…</div>`,
+  <div class="out" id="mOut">در حال دریافت…</div>
+  <div id="mCh"></div>`,
 
  crypto:()=>`<h2><svg class="ic"><use href="#i-crypto"/></svg> ارزهای دیجیتال</h2>
   <div class="row"><button id="cGo">دریافت قیمت‌ها</button>
    <button class="ghost" id="cBot">گرفتن از ربات</button></div>
-  <div class="out" id="cOut">در حال دریافت…</div>`,
+  <div class="out" id="cOut">در حال دریافت…</div>
+  <div id="cCh"></div>`,
 
  font:()=>`<h2><svg class="ic"><use href="#i-font"/></svg> فونت‌ساز</h2>
   <input id="fIn" placeholder="متن خود را بنویس…" style="width:100%">
@@ -1002,6 +1005,22 @@ async function loadMarketData(){
   }
   return {rows, src};
 }
+async function loadChannel(){
+  try{ return await jget('./data/prices.json'); }catch(e){ return null; }
+}
+function channelBlock(data, keywords){
+  if(!data || !data.rows || !data.rows.length) return '';
+  const rows = keywords
+    ? data.rows.filter(r => keywords.some(k => r.label.includes(k)))
+    : data.rows;
+  const list = (rows.length ? rows : data.rows).slice(0,10);
+  return `<div class="panel" style="margin-top:11px;animation:pop .4s var(--e) both">
+    <h2><svg class="ic"><use href="#i-market"/></svg> کانال @${data.channel}</h2>
+    ${list.map(r=>`<div class="kv"><span>${r.label}</span><b>${r.value}</b></div>`).join('')}
+    <div class="src"><span class="dot"></span>آخرین به‌روزرسانی: ${data.updated || '—'}
+      · خوانده‌شده توسط ربات</div></div>`;
+}
+
 function initMarket(){
   const out=$('#mOut');
   const run=async()=>{
@@ -1017,6 +1036,10 @@ function initMarket(){
   };
   $('#mGo').onclick=()=>{USD_IRR=0;run();buzz();};
   $('#mBot').onclick=()=>send('market');
+  loadChannel().then(data=>{
+    $('#mCh').innerHTML = channelBlock(data, ['دلار','یورو','پوند','درهم','لیر','یوان','سکه','طلا','مثقال','تتر'])
+      || '<div class="mut" style="margin-top:11px">قیمتی از کانال دریافت نشد — از ربات بگیر 👇</div>';
+  });
   run();
 }
 function initCrypto(){
@@ -1044,6 +1067,9 @@ function initCrypto(){
   };
   $('#cGo').onclick=()=>run();
   $('#cBot').onclick=()=>send('crypto');
+  loadChannel().then(data=>{
+    $('#cCh').innerHTML = channelBlock(data, ['بیت\u200cکوین','اتریوم','انس','تتر']) || '';
+  });
   run();
 }
 

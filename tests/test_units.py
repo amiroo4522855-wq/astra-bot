@@ -330,3 +330,47 @@ class TestCities(unittest.TestCase):
     def test_unknown_city(self):
         from astra.services import weather
         self.assertIsNone(weather.find_local("شهرخیالینداره"))
+
+
+class TestChannelPrices(unittest.TestCase):
+    """استخراج قیمت از پیام کانال (بدون نیاز به اینترنت)."""
+
+    SAMPLE = (
+        "نرخ فروش #دلار، #ارز، #سکه و #طلا در بازار\n"
+        "💵 دلار: 233,700 تومان  4010\U0001f53a %1.75+\n"
+        "💶 یورو: 268,820 تومان\n"
+        "&rlm;\U0001f1e6\U0001f1ea درهم: 63,500 تومان\n"
+        "\U0001f539 مثقال طلا: 104,190,000 تومان\n"
+        "💸 دلار فردایی تهران \U0001f4b5 233,300 معامله ✅"
+    )
+
+    def test_extract_summary_lines(self):
+        from astra.services import currency
+        rows = dict((label, value) for label, value, _ in currency.extract_channel_rows(self.SAMPLE))
+        self.assertIn("💵 دلار", rows)
+        self.assertEqual(rows["💵 دلار"], 233700)
+        self.assertIn("💶 یورو", rows)
+        self.assertIn("🕌 درهم", rows)
+        self.assertIn("⚖️ مثقال طلا", rows)
+
+    def test_extract_futures_line(self):
+        from astra.services import currency
+        rows = dict((label, value) for label, value, _ in currency.extract_channel_rows(self.SAMPLE))
+        self.assertIn("💸 دلار فردایی", rows)
+        self.assertEqual(rows["💸 دلار فردایی"], 233300)
+
+    def test_rejects_out_of_range(self):
+        from astra.services import currency
+        rows = currency.extract_channel_rows("💵 دلار: 300 تومان")
+        self.assertEqual(rows, [])
+
+    def test_number_with_zwnj(self):
+        from astra.services import currency
+        self.assertEqual(currency._clean_number("23\u200c\u200c4,\u200c100"), 234100)
+        self.assertEqual(currency._clean_number("۱۲۳,۴۵۶"), 123456)
+
+    def test_crypto_unit_is_dollar(self):
+        from astra.services import currency
+        rows = dict((label, unit) for label, _, unit
+                    in currency.extract_channel_rows("🟠 بیت\u200cکوین: 78,794"))
+        self.assertEqual(rows.get("🟠 بیت\u200cکوین"), "دلار")

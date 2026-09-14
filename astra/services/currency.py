@@ -78,6 +78,7 @@ CHANNEL_LABELS = {
     "اتریوم": "🟣 اتریوم",
 }
 CHANNEL_KEY = "prices:channel"
+CHANNEL_WEB_KEY = "prices:web"
 
 
 def _to_en_digits(text: str) -> str:
@@ -160,6 +161,190 @@ def channel_prices(db, max_age: int = 2400) -> list[tuple[str, str, float]]:
             label, value, unit = item
         rows.append((label, f"{money(round(float(value)))} {unit}", float(value)))
     return rows
+
+
+def _clean_number(raw: str) -> float | None:
+    """تبديل رشته‌ی عددیِ شلخته به عدد (با حذف نیم‌فاصله، کاما و فاصله)."""
+    text = str(raw or "")
+    for junk in ("\u200c", "\u200f", "\u200e", "،", ",", " ", "\u00a0", "\u0640", "٬"):
+        text = text.replace(junk, "")
+    text = "".join("0123456789."["۰۱۲۳۴۵۶۷۸۹.".index(c)] if c in "۰۱۲۳۴۵۶۷۸۹." else c
+                   for c in text)
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+# بازه‌های مجاز برای جلوگیری از نمایش عدد اشتباه (تومان / دلار)
+VALID_TOMAN = {
+    "💵 دلار": (20_000, 5_000_000),
+    "💶 یورو": (20_000, 8_000_000),
+    "💷 پوند": (20_000, 8_000_000),
+    "🕌 درهم": (5_000, 2_000_000),
+    "🇹🇷 لیر": (100, 500_000),
+    "🇨🇳 یوان": (1_000, 2_000_000),
+    "🇨🇦 دلار کانادا": (10_000, 5_000_000),
+    "🇦🇺 دلار استرالیا": (10_000, 5_000_000),
+    "🪙 سکه امامی": (1_000_000, 3_000_000_000),
+    "✨ طلای ۱۸ عیار": (500_000, 1_000_000_000),
+    "💛 طلای ۲۴ عیار": (500_000, 1_000_000_000),
+    "⚖️ مثقال طلا": (1_000_000, 2_000_000_000),
+    "🟢 تتر": (20_000, 5_000_000),
+    "💸 دلار فردایی": (20_000, 5_000_000),
+}
+VALID_USD = {
+    "🟠 بیت\u200cکوین": (1_000, 2_000_000),
+    "🟣 اتریوم": (100, 200_000),
+    "🌍 انس جهانی طلا": (300, 50_000),
+}
+# ترتیب مهم است: عبارت‌های خاص اول بررسی می‌شوند
+KEY_ORDER = (
+    ("دلار کانادا", "🇨🇦 دلار کانادا"), ("دلار استرالیا", "🇦🇺 دلار استرالیا"),
+    ("دلار فردایی", "💸 دلار فردایی"), ("دلار", "💵 دلار"), ("یورو", "💶 یورو"),
+    ("پوند", "💷 پوند"), ("درهم", "🕌 درهم"), ("لیر", "🇹🇷 لیر"), ("یوان", "🇨🇳 یوان"),
+    ("سکه امامی", "🪙 سکه امامی"), ("سکه", "🪙 سکه امامی"),
+    ("طلای ۱۸", "✨ طلای ۱۸ عیار"), ("طلای 18", "✨ طلای ۱۸ عیار"),
+    ("طلای ۲۴", "💛 طلای ۲۴ عیار"), ("طلای 24", "💛 طلای ۲۴ عیار"),
+    ("مثقال", "⚖️ مثقال طلا"), ("تتر", "🟢 تتر"),
+    ("بیت\u200cکوین", "🟠 بیت\u200cکوین"), ("بیت کوین", "🟠 بیت\u200cکوین"),
+    ("اتریوم", "🟣 اتریوم"), ("انس", "🌍 انس جهانی طلا"), ("اونس", "🌍 انس جهانی طلا"),
+)
+SUMMARY_RE = re.compile(r"([^\d\n:]{2,50}):\s*([\d۰-۹][\d۰-۹,\.\s]{2,20})\s*(تومان|ریال|دلار)?")
+FUTURE_RE = re.compile(r"([\d۰-۹][\d۰-۹,\s]{4,20})\s*(?:تومان)?\s*(?:خـ?رید|فروش|معامله)")
+
+
+def _canonical(text: str) -> str | None:
+    for needle, label in KEY_ORDER:
+        if needle in text:
+            return label
+    return None
+
+
+def _valid(label: str, value: float, unit: str) -> bool:
+    if unit == "دلار":
+        low, high = VALID_USD.get(label, (0, float("inf")))
+    else:
+        low, high = VALID_TOMAN.get(label, (0, float("inf")))
+    return low <= value <= high
+
+
+def extract_channel_rows(text: str) -> list[tuple[str, float, str]]:
+    """استخراج ایمنِ قیمت از یک پیامِ کانال (با اعتبارسنجی بازه)."""
+    rows: list[tuple[str, float, str]] = []
+    seen: set[str] = set()
+
+    # ۱) خطوطِ «برچسب: عدد واحد»
+    for line in (text or "").splitlines():
+        match = SUMMARY_RE.search(line)
+        if not match:
+            continue
+        label = _canonical(match.group(1))
+        if not label or label in seen:
+            continue
+        value = _clean_number(match.group(2))
+        if not value:
+            continue
+        unit = match.group(3) or "تومان"
+        if "ریال" in line:
+            value, unit = value / 10, "تومان"
+        # ارزهایی که معمولاً به دلارند (بیت‌کوین، اتریوم، انس)
+        if unit == "تومان" and label in VALID_USD:
+            low, high = VALID_USD[label]
+            if low <= value <= high:
+                unit = "دلار"
+        if not _valid(label, value, unit):
+            continue
+        rows.append((label, value, unit))
+        seen.add(label)
+
+    # ۲) الگوی «دلار فردایی تهران 💵 233,300 معامله»
+    if "💸 دلار فردایی" not in seen:
+        for line in (text or "").splitlines():
+            if "فردایی" not in line:
+                continue
+            found = re.findall(r"[\d۰-۹][\d۰-۹,\s]{4,20}", line)
+            if not found:
+                continue
+            value = _clean_number(found[-1])
+            if value and _valid("💸 دلار فردایی", value, "تومان"):
+                rows.append(("💸 دلار فردایی", value, "تومان"))
+                seen.add("💸 دلار فردایی")
+                break
+
+    return rows
+
+
+def fetch_channel_web(username: str | None = None,
+                      max_age: int = 600) -> list[tuple[str, str, float]]:
+    """خواندن آخرین قیمت‌ها از پیش\u200cنمایش عمومی یک کانال تلگرام.
+
+    فقط کانال‌های عمومی (که ‎t.me/s/<username>‎ دارند) قابل خواندن هستند
+    و نتیجه تا ۱۰ دقیقه کش می‌شود تا به تلگرام فشار نیاید.
+    """
+    from .http import get_text
+
+    name = (username or getattr(config, "PRICE_CHANNEL", "") or "").lstrip("@").strip()
+    if not name:
+        return []
+
+    cached = _cache_read(CHANNEL_WEB_KEY, max_age)
+    if cached is not None:
+        return cached
+
+    try:
+        html = get_text(f"https://t.me/s/{name}", timeout=18)
+    except Exception:
+        return []
+    blocks = re.findall(
+        r'<div class="tgme_widget_message_text[^"]*"[^>]*>(.*?)</div>', html or "", re.S)
+    stamps = re.findall(r'<time[^>]*datetime="([^"]+)"', html or "")
+    if not blocks:
+        return []
+
+    def strip_tags(chunk: str) -> str:
+        chunk = re.sub(r"<br\s*/?>", "\n", chunk)
+        chunk = re.sub(r"<[^>]+>", "", chunk)
+        for code, char in (("&amp;", "&"), ("&lt;", "<"), ("&gt;", ">"),
+                           ("&#33;", "!"), ("&rlm;", "")):
+            chunk = chunk.replace(code, char)
+        return chunk.strip()
+
+    latest: dict[str, tuple[float, str]] = {}
+    for block in reversed(blocks):          # از جدید به قدیم
+        for label, value, unit in extract_channel_rows(strip_tags(block)):
+            latest.setdefault(label, (value, unit))
+        if len(latest) >= 8:
+            break
+
+    rows = [(label, f"{money(round(value))} {unit}", value)
+            for label, (value, unit) in latest.items()]
+    if rows:
+        _cache_write(CHANNEL_WEB_KEY, rows, stamps[-1] if stamps else "")
+    return rows
+
+
+def channel_stamp() -> str:
+    """زمان آخرین پیامی که از کانال خوانده شده (رشته‌ی آماده‌ی نمایش)."""
+    _, stamp = _CACHE.get(CHANNEL_WEB_KEY + ":stamp", (0, ""))
+    return str(stamp or "")
+
+
+def _cache_read(key: str, max_age: int):
+    import time as _t
+    stamp, rows = _CACHE.get(key, ("", None))
+    if rows is None or _t.time() - float(stamp or 0) > max_age:
+        return None
+    return rows
+
+
+def _cache_write(key: str, rows, stamp: str = "") -> None:
+    import time as _t
+    _CACHE[key] = (_t.time(), rows)
+    _CACHE[key + ":stamp"] = (_t.time(), stamp)
+
+
+_CACHE: dict = {}
 
 
 def _to_toman(value: float, unit: str) -> float:

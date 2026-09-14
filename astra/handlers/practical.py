@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from ..core.context import Context
+from .. import config
 from ..core.keyboards import btn, kb, main_menu
 from ..core.router import route, state
 from ..core.utils import SEPARATOR, en_to_fa
@@ -161,6 +162,21 @@ def _report(ctx: Context, kind: str) -> None:
 
     lines = [f"{title}", SEPARATOR]
     lines += [f"{label} : {value}" for label, value, _ in selected[:12]]
+
+    # قیمت‌های کانالِ متصل (اگر موجود باشد) — با ذکر منبع
+    try:
+        channel = currency.fetch_channel_web()
+    except Exception:
+        channel = []
+    if channel:
+        channel = [row for row in channel
+                   if any(row[0].startswith(k) for k in keywords)] or channel
+        lines.append(SEPARATOR)
+        lines.append(f"📢 بر اساس کانال @{config.PRICE_CHANNEL}:")
+        lines += [f"{label} : {value}" for label, value, _ in channel[:8]]
+        if currency.channel_stamp():
+            lines.append(f"🕓 آخرین به‌روزرسانی کانال: {currency.channel_stamp()[:16]}")
+
     ctx.send("\n".join(lines),
              kb().row(btn("🔄 بروزرسانی", f"practical:{kind}"),
                       btn("🌤 کاربردی", "menu:practical"))

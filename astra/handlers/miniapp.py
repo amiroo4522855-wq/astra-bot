@@ -104,6 +104,40 @@ def _market(ctx: Context, data: dict) -> None:
     _report(ctx, "currency")
 
 
+def _channel(ctx: Context, data: dict) -> None:
+    """نمایش آخرین قیمت‌های خوانده‌شده از کانال متصل."""
+    from ..services import currency
+    try:
+        rows = currency.fetch_channel_web()
+    except Exception:
+        rows = []
+    if not rows:
+        ctx.send(
+            "📡 هنوز قیمتی از کانال دریافت نشده.\n"
+            f"{SEPARATOR}\n"
+            "ربات به‌طور خودکار هر چند دقیقه کانال را می‌خواند؛\n"
+            "کمی دیگر دوباره امتحان کن 🙏",
+            kb().row(btn("🔄 تلاش دوباره", "app:channel"),
+                     btn("🏠 منوی اصلی", "nav:home")).build(),
+        )
+        return
+    from .. import config as _config
+    lines = [f"📢 قیمت‌های کانال @{_config.PRICE_CHANNEL}", SEPARATOR]
+    lines += [f"{label} : {value}" for label, value, _ in rows[:14]]
+    if currency.channel_stamp():
+        lines.append(f"{SEPARATOR}\n🕓 آخرین پست کانال: {currency.channel_stamp()[:16]}")
+    ctx.send("\n".join(lines),
+             kb().row(btn("🔄 بروزرسانی", "app:channel"),
+                      btn("🌤 کاربردی", "menu:practical"))
+                  .row(btn("🏠 منوی اصلی", "nav:home")).build())
+
+
+@route("app:channel")
+@guarded("app.channel")
+def channel_from_button(ctx: Context) -> None:
+    _channel(ctx, {})
+
+
 def _gold(ctx: Context, data: dict) -> None:
     from .practical import _report
     ctx.send("⏳ دارم نرخ طلا و سکه رو می‌گیرم…")
@@ -260,6 +294,7 @@ def _profile(ctx: Context, data: dict) -> None:
 
 ACTIONS = {
     "weather": _weather,
+    "channel": _channel,
     "market": _market,
     "gold": _gold,
     "crypto": _crypto,

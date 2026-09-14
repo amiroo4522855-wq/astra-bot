@@ -96,10 +96,26 @@ class AstraBot:
         self.db.set_setting(self.offset_key, str(self.offset))
         return len(updates)
 
+    def _start_publisher(self) -> None:
+        """هر چند دقیقه قیمت‌های کانال را برای مینی‌اپ منتشر می‌کند."""
+        import threading, time as _time
+
+        def worker() -> None:
+            while True:
+                _time.sleep(300)
+                try:
+                    from ..services import publisher
+                    publisher.publish()
+                except Exception:                       # هرگز نباید ربات را متوقف کند
+                    pass
+
+        threading.Thread(target=worker, daemon=True).start()
+
     def run(self) -> None:
         """حلقه‌ی اصلی (Long Polling)."""
         self._install_signals()
         self.bootstrap()
+        self._start_publisher()          # انتشار دوره‌ای قیمت‌ها برای مینی‌اپ
         failures = 0
         while self.running:
             try:

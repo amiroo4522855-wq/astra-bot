@@ -71,6 +71,9 @@ BOT_VERSION = env("BOT_VERSION", "1.0.0")
 BOT_TOKEN = env("BOT_TOKEN", "")
 API_BASE = env("API_BASE", "https://botapi.rubika.ir/v3")
 
+# کانال قیمتی (ربات از آن نرخ می‌خواند؛ می‌تواند عمومی باشد)
+PRICE_CHANNEL = env("PRICE_CHANNEL", "DO_L4")
+
 # آدرس مینی‌اپ (Telegram Web App) — روی GitHub Pages
 APP_URL = env("APP_URL", "https://amiroo4522855-wq.github.io/astra-bot/")
 MINIAPP_TEXT = env("MINIAPP_TEXT", "✨ مینی‌اپ")
