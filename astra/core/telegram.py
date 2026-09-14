@@ -48,7 +48,10 @@ def to_inline_keyboard(keypad: dict | None) -> dict | None:
             text = str(button.get("button_text", "") or "").strip()
             if not text:
                 continue
-            if button.get("type") == "Link" and button.get("link_url"):
+            btype = button.get("type")
+            if btype == "WebApp" and button.get("url"):
+                tg_row.append({"text": text, "web_app": {"url": button["url"]}})
+            elif btype == "Link" and button.get("link_url"):
                 tg_row.append({"text": text, "url": button["link_url"]})
             else:
                 callback = str(button.get("id", ""))[:64]
@@ -237,6 +240,10 @@ class TelegramClient(RubikaClient):
 
     def set_commands(self, commands: list[dict]) -> dict:
         return self.call("setMyCommands", {"commands": commands})
+
+    def set_menu_button(self, url: str, text: str = "✨ مینی‌اپ") -> dict:
+        return self.call("setChatMenuButton", {"menu_button": {
+            "type": "web_app", "text": text, "web_app": {"url": url}}})
 
     def update_bot_endpoint(self, url: str, endpoint_type: str = "Update") -> dict:
         return self.call("setWebhook", {"url": url})

@@ -190,6 +190,12 @@ def dispatch(ctx: Context) -> None:
             )
         return
 
+    # ۳.۵) داده‌ی ارسالی از مینی‌اپ (Telegram Web App)
+    if update.web_app_data:
+        from ..handlers.miniapp import on_web_app_data
+        on_web_app_data(ctx)
+        return
+
     # ۴) وضعیت فعال گفتگو (مثل انتظار برای نام شهر)
     current_state, data = ctx.get_state()
     if current_state:

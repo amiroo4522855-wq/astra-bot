@@ -135,13 +135,20 @@ class AstraBot:
             return
         try:
             self.client.set_commands([
-                {"command": "start", "description": "شروع و منوی اصلی"},
-                {"command": "help", "description": "راهنما"},
-                {"command": "vip", "description": "عضویت ویژه"},
-                {"command": "admin", "description": "پنل مدیریت"},
+                {"command": "start", "description": "🏠 شروع و منوی اصلی"},
+                {"command": "app", "description": "✨ باز کردن مینی‌اپ آسترا"},
+                {"command": "help", "description": "ℹ️ راهنما و پشتیبانی"},
+                {"command": "vip", "description": "💎 عضویت ویژه"},
+                {"command": "admin", "description": "👑 پنل مدیریت"},
             ])
         except RubikaError:
             pass
+        if self.platform == "telegram" and config.APP_URL:
+            try:
+                self.client.set_menu_button(config.APP_URL, config.MINIAPP_TEXT)
+                print("✨ دکمه‌ی مینی‌اپ به منوی تلگرام اضافه شد")
+            except Exception as exc:                        # دکمه اختیاری است
+                self.db.log("ERROR", "setChatMenuButton", str(exc))
 
     def set_webhook(self, url: str) -> str:
         """تنظیم آدرس دریافت آپدیت‌ها (Webhook)."""

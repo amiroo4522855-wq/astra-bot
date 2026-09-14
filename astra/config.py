@@ -71,6 +71,10 @@ BOT_VERSION = env("BOT_VERSION", "1.0.0")
 BOT_TOKEN = env("BOT_TOKEN", "")
 API_BASE = env("API_BASE", "https://botapi.rubika.ir/v3")
 
+# آدرس مینی‌اپ (Telegram Web App) — روی GitHub Pages
+APP_URL = env("APP_URL", "https://amiroo4522855-wq.github.io/astra-bot/")
+MINIAPP_TEXT = env("MINIAPP_TEXT", "✨ مینی‌اپ")
+
 # تلگرام: توکن از @BotFather تلگرام (قالب: 123456789:AAxxxxxxxx...)
 TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", "")
 # auto | rubika | telegram  (در حالت auto از روی قالب توکن تشخیص داده می‌شود)

@@ -46,6 +46,7 @@ class Update:
     file_name: str = ""
     is_forwarded: bool = False
     callback_query_id: str = ""       # مخصوص تلگرام (پاسخ به callback_query)
+    web_app_data: str = ""            # داده‌ی ارسالی از مینی‌اپ (Telegram Web App)
     raw: dict = field(default_factory=dict)
 
     @property
@@ -110,6 +111,7 @@ def parse_update(raw: dict) -> Update | None:
         if document and not file_id:
             file_id = str(document.get("file_id", ""))
             file_type = "File"
+        web_app_raw = (tg_message.get("web_app_data") or {}).get("data", "") or ""
         text = str(tg_message.get("text") or tg_message.get("caption") or "")
         return Update(
             kind="message",
@@ -118,6 +120,7 @@ def parse_update(raw: dict) -> Update | None:
             sender_id=str(sender.get("id", "") or chat_id),
             message_id=str(tg_message.get("message_id", "")),
             text=text,
+            web_app_data=str(web_app_raw),
             first_name=str(sender.get("first_name", "")),
             username=str(sender.get("username", "")),
             file_id=file_id,

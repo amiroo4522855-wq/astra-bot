@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>آسترا ✨ | همه ابزارها در یک ربات</title>
+<link rel="icon" href="./icon.png">
+<style>
+  :root{
+    --bg:#0e1117; --card:rgba(255,255,255,.06); --card2:rgba(255,255,255,.04);
+    --line:rgba(255,255,255,.10); --text:#e6edf3; --muted:#8b949e;
+    --accent:#7c3aed; --accent2:#22d3ee;
+    --grad:linear-gradient(135deg,#7c3aed 0%,#22d3ee 100%);
+    --ok:#3fb950; --warn:#d29922; --err:#f85149;
+    --r:16px; --shadow:0 8px 28px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(900px 500px at 100% -10%, rgba(124,58,237,.28), transparent 60%),
+      radial-gradient(700px 400px at -10% 110%, rgba(34,211,238,.22), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:"Vazirmatn","IRANSans","Segoe UI",Tahoma,system-ui,sans-serif;
+    min-height:100vh; padding-bottom:96px;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:14px 14px 0}
+  header.hero{
+    background:var(--card); border:1px solid var(--line); border-radius:22px;
+    padding:16px; backdrop-filter:blur(14px); box-shadow:var(--shadow);
+    display:flex; align-items:center; gap:12px; margin-bottom:14px;
+  }
+  .logo{
+    width:52px;height:52px;border-radius:16px;background:var(--grad);
+    display:grid;place-items:center;font-size:26px;flex:0 0 auto;
+    box-shadow:0 6px 18px rgba(124,58,237,.45);
+  }
+  .hero h1{margin:0;font-size:19px;letter-spacing:.2px}
+  .hero p{margin:3px 0 0;font-size:12.5px;color:var(--muted);line-height:1.6}
+  .badge{
+    display:inline-block;margin-top:6px;padding:3px 9px;border-radius:999px;
+    font-size:11px;background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.4)
+  }
+  .badge.vip{background:linear-gradient(135deg,rgba(255,193,7,.22),rgba(255,87,34,.22));
+    border-color:rgba(255,193,7,.45);color:#ffd166}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:14px 10px;text-align:center;cursor:pointer;transition:.18s;
+    backdrop-filter:blur(10px);box-shadow:0 3px 12px rgba(0,0,0,.22);
+  }
+  .card:hover{transform:translateY(-2px);border-color:rgba(124,58,237,.55)}
+  .card:active{transform:scale(.97)}
+  .card .ic{font-size:24px;display:block;margin-bottom:6px}
+  .card .t{font-size:12px;font-weight:600}
+  .card .s{font-size:10.5px;color:var(--muted);margin-top:2px}
+
+  .panel{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:14px;margin-top:12px;backdrop-filter:blur(10px);box-shadow:var(--shadow)
+  }
+  .panel h2{margin:0 0 10px;font-size:15px;display:flex;align-items:center;gap:7px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  input,select,textarea{
+    flex:1;min-width:140px;background:var(--card2);border:1px solid var(--line);
+    color:var(--text);border-radius:12px;padding:11px 12px;font-size:14px;
+    font-family:inherit;outline:none;transition:.15s
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+  button{
+    background:var(--grad);color:#fff;border:0;border-radius:12px;padding:11px 16px;
+    font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;transition:.15s;
+    box-shadow:0 4px 14px rgba(124,58,237,.35)
+  }
+  button:active{transform:scale(.97)}
+  button.ghost{
+    background:var(--card2);border:1px solid var(--line);color:var(--text);
+    box-shadow:none;font-weight:600
+  }
+  .out{
+    margin-top:10px;background:rgba(0,0,0,.28);border:1px solid var(--line);
+    border-radius:12px;padding:11px;font-size:13px;line-height:1.95;white-space:pre-wrap;
+    min-height:44px
+  }
+  .kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;
+      border-bottom:1px dashed var(--line);font-size:13px}
+  .kv:last-child{border-bottom:0}
+  .muted{color:var(--muted);font-size:12px}
+  .chip{
+    display:inline-block;padding:5px 10px;margin:3px;border-radius:999px;
+    background:var(--card2);border:1px solid var(--line);font-size:12px;cursor:pointer
+  }
+  .chip:active{transform:scale(.96)}
+
+  nav.tabs{
+    position:fixed;bottom:0;left:0;right:0;display:flex;gap:4px;padding:8px 10px 12px;
+    background:rgba(14,17,23,.9);backdrop-filter:blur(16px);border-top:1px solid var(--line);
+    z-index:50
+  }
+  nav.tabs button{
+    flex:1;background:transparent;border:0;box-shadow:none;color:var(--muted);
+    display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;padding:6px 0
+  }
+  nav.tabs button.on{color:#c4b5fd}
+  nav.tabs .ti{font-size:19px}
+
+  .keys{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:8px}
+  .keys button{padding:13px 0;font-size:16px;border-radius:12px}
+
+  .hidden{display:none!important}
+  .toast{
+    position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:rgba(20,24,33,.96);border:1px solid var(--line);color:var(--text);
+    padding:10px 16px;border-radius:12px;font-size:13px;opacity:0;transition:.25s;z-index:99;
+    box-shadow:var(--shadow)
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .skeleton{height:14px;border-radius:7px;background:linear-gradient(90deg,
+    rgba(255,255,255,.06),rgba(255,255,255,.14),rgba(255,255,255,.06));
+    background-size:200% 100%;animation:sh 1.2s infinite;margin:6px 0}
+  @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .fade{animation:fi .22s ease}
+  @keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="logo">✨</div>
+    <div style="flex:1">
+      <h1>آسترا <span style="font-size:13px;color:var(--muted)">Astra</span></h1>
+      <p>همه ابزارها در یک ربات 🚀</p>
+      <span class="badge" id="vipBadge">🆓 حساب رایگان</span>
+    </div>
+  </header>
+
+  <!-- ================= خانه ================= -->
+  <section id="page-home" class="fade">
+    <div class="grid" id="homeGrid"></div>
+
+    <div class="panel">
+      <h2>⚡ دسترسی سریع</h2>
+      <div class="row">
+        <span class="chip" data-quick="weather">🌤 آب‌وهوای تهران</span>
+        <span class="chip" data-quick="crypto">🪙 قیمت ارز دیجیتال</span>
+        <span class="chip" data-quick="clock">🕓 ساعت و تاریخ</span>
+        <span class="chip" data-quick="joke">😂 یه جوک</span>
+        <span class="chip" data-quick="fal">🔮 فال امروز</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>🤖 ابزارهایی که در چت انجام می‌دهم</h2>
+      <p class="muted" style="margin:0 0 8px">
+        این‌ها را اینجا بنویس؛ نتیجه در چت تلگرام برایت می‌آید:
+      </p>
+      <div class="row">
+        <span class="chip" data-send="ai">💬 چت هوش مصنوعی</span>
+        <span class="chip" data-send="image">🎨 ساخت عکس</span>
+        <span class="chip" data-send="music">🎵 جستجوی آهنگ</span>
+        <span class="chip" data-send="download">📥 دانلود لینک</span>
+        <span class="chip" data-send="qr">📱 ساخت QR</span>
+        <span class="chip" data-send="tts">🗣 متن به ویس</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ابزارها ================= -->
+  <section id="page-tools" class="hidden">
+    <div class="grid" id="toolsGrid"></div>
+    <div id="toolBox"></div>
+  </section>
+
+  <!-- ================= سرگرمی ================= -->
+  <section id="page-fun" class="hidden">
+    <div class="panel">
+      <h2>🎮 سرگرمی</h2>
+      <div class="row" style="margin-bottom:10px">
+        <button class="ghost" data-fun="joke">😂 جوک</button>
+        <button class="ghost" data-fun="poem">📜 شعر</button>
+        <button class="ghost" data-fun="fal">🔮 فال حافظ</button>
+        <button class="ghost" data-fun="challenge">🏆 چالش روز</button>
+      </div>
+      <div class="out" id="funOut">یکی از دکمه‌ها را بزن 😍</div>
+    </div>
+
+    <div class="panel">
+      <h2>🎯 حدس عدد</h2>
+      <p class="muted" style="margin:0">بین ۱ تا ۱۰۰ یک عدد انتخاب کردم 🤫</p>
+      <div class="row" style="margin-top:8px">
+        <input id="guessIn" inputmode="numeric" placeholder="حدس تو…">
+        <button id="guessBtn">بزن 🎯</button>
+      </div>
+      <div class="out" id="guessOut">منتظر اولین حدس…</div>
+    </div>
+  </section>
+
+  <!-- ================= حساب ================= -->
+  <section id="page-me" class="hidden">
+    <div class="panel">
+      <h2>👤 حساب من</h2>
+      <div id="meBox" class="out">در حال دریافت…</div>
+      <div class="row" style="margin-top:10px">
+        <button data-send="vip">💎 عضویت ویژه</button>
+        <button class="ghost" data-send="support">💬 پشتیبانی</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>🛠 بخش‌هایی که در چت انجام می‌دهم</h2>
+      <div class="row">
+        <span class="chip" data-send="ocr">🔍 متن از عکس</span>
+        <span class="chip" data-send="radio">📻 رادیو</span>
+        <span class="chip" data-send="sticker">🎨 استیکر</span>
+        <span class="chip" data-send="playlist">🎧 پلی‌لیست</span>
+        <span class="chip" data-send="group">⚙️ مدیریت گروه</span>
+      </div>
+      <p class="muted" style="margin:10px 0 0">
+        هر کدام را بزن، مینی‌اپ بسته می‌شود و ربات در چت راهنمایی‌ات می‌کند.
+      </p>
+    </div>
+  </section>
+</div>
+
+<nav class="tabs">
+  <button data-tab="home" class="on"><span class="ti">🏠</span>خانه</button>
+  <button data-tab="tools"><span class="ti">🛠</span>ابزارها</button>
+  <button data-tab="fun"><span class="ti">🎮</span>سرگرمی</button>
+  <button data-tab="me"><span class="ti">👤</span>حساب</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   آسترا · Mini App
+   ابزارهای سمت‌کاربر: آب‌وهوا، ارز، فونت، ماشین‌حساب،
+   تبدیل واحد، ساعت و تاریخ شمسی، سرگرمی
+   ابزارهای سنگین (AI، دانلود، موزیک، QR، ویس، OCR) از طریق
+   WebApp.sendData به ربات در تلگرام فرستاده می‌شوند.
+========================================================= */
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+
+/* ---------- تم تلگرام ---------- */
+function applyTheme(){
+  if(!tg) return;
+  const p = tg.themeParams || {};
+  if(p.bg_color) document.documentElement.style.setProperty('--bg', p.bg_color);
+  if(p.text_color) document.documentElement.style.setProperty('--text', p.text_color);
+  if(p.hint_color) document.documentElement.style.setProperty('--muted', p.hint_color);
+  if(p.button_color) document.documentElement.style.setProperty('--accent', p.button_color);
+  document.documentElement.style.setProperty('--card',
+    p.secondary_bg_color ? hexA(p.secondary_bg_color,.55) : 'rgba(255,255,255,.06)');
+}
+function hexA(hex,a){
+  const h = hex.replace('#','');
+  const n = parseInt(h.length===3 ? h.split('').map(c=>c+c).join('') : h, 16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+
+/* ---------- ابزارهای عمومی ---------- */
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(window.__tt); window.__tt = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function buzz(){ try{ tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred('light'); }catch(e){} }
+function fa(n){ return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
+function send(action, extra){
+  const payload = Object.assign({action}, extra || {});
+  buzz();
+  if(tg && tg.sendData){
+    tg.sendData(JSON.stringify(payload));
+    setTimeout(()=>{ try{ tg.close(); }catch(e){} }, 250);
+    toast('فرستاده شد ✅ ادامه در چت…');
+  }else{
+    toast('این بخش فقط داخل تلگرام کار می‌کند');
+  }
+}
+async function jget(url){
+  const r = await fetch(url, {cache:'no-store'});
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+/* ---------- تاریخ شمسی ---------- */
+function toJalali(gy, gm, gd){
+  const gdm=[0,31,59,90,120,151,181,212,243,273,304,334];
+  const gy2 = gm>2 ? gy+1 : gy;
+  let d = 355666 + 365*gy + Math.floor((gy2+3)/4) - Math.floor((gy2+99)/100)
+        + Math.floor((gy2+399)/400) + gd + gdm[gm-1];
+  let jy = -1595 + 33*Math.floor(d/12053); d %= 12053;
+  jy += 4*Math.floor(d/1461); d %= 1461;
+  if(d>365){ jy += Math.floor((d-1)/365); d = (d-1)%365; }
+  let jm, jd;
+  if(d<186){ jm = 1+Math.floor(d/31); jd = 1+(d%31); }
+  else { jm = 7+Math.floor((d-186)/30); jd = 1+((d-186)%30); }
+  return [jy,jm,jd];
+}
+const JM=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+const JW=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
+function jalaliNow(){
+  const n = new Date();
+  const [y,m,d] = toJalali(n.getFullYear(), n.getMonth()+1, n.getDate());
+  return `${JW[(n.getDay()+2)%7]} ${fa(d)} ${JM[m-1]} ${fa(y)}`;
+}
+
+/* ---------- فونت‌ساز ---------- */
+const FONTS = {
+  'پررنگ': s => s.replace(/[A-Za-z0-9]/g, c => {
+      const i = c.charCodeAt(0);
+      if(c>='A'&&c<='Z') return String.fromCodePoint(0x1D400+i-65);
+      if(c>='a'&&c<='z') return String.fromCodePoint(0x1D41A+i-97);
+      return String.fromCodePoint(0x1D7CE+(+c));
+  }),
+  'دست‌نویس': s => s.replace(/[A-Za-z]/g, c => {
+      const i = c.charCodeAt(0);
+      return c>='A'&&c<='Z' ? String.fromCodePoint(0x1D49C+i-65) : String.fromCodePoint(0x1D4B6+i-97);
+  }),
+  'حبابی': s => s.replace(/[A-Za-z0-9]/g, c => {
+      if(c>='A'&&c<='Z') return String.fromCodePoint(0x24B6+c.charCodeAt(0)-65);
+      if(c>='a'&&c<='z') return String.fromCodePoint(0x24D0+c.charCodeAt(0)-97);
+      return c==='0' ? '⓪' : String.fromCodePoint(0x2460+(+c)-1);
+  }),
+  'زیرخط‌دار ✅': s => s.replace(/./g, c => c + '̲'),
+  'خط‌خورده ✅': s => s.replace(/./g, c => c + '̶'),
+  'فاصله‌دار ✅': s => s.split('').join(' '),
+  'جواهری ✅': s => '✨' + s.split('').join('✨') + '✨'
+};
+
+/* ---------- کارت‌ها ---------- */
+const HOME = [
+  ['🌤','آب‌وهوا','هر شهر دنیا','tool:weather'],
+  ['💰','ارز و طلا','نرخ لحظه‌ای','tool:market'],
+  ['🪙','کریپتو','بیت‌کوین و…','tool:crypto'],
+  ['🔤','فونت‌ساز','۷ سبک آنی','tool:font'],
+  ['🧮','ماشین‌حساب','محاسبه سریع','tool:calc'],
+  ['🔄','تبدیل واحد','۸ دسته','tool:convert'],
+  ['🕓','ساعت جهانی','تاریخ شمسی','tool:clock'],
+  ['📱','ساخت QR','در چت ارسال می‌شود','send:qr'],
+  ['🤖','هوش مصنوعی','چت و تصویر','send:ai'],
+  ['📥','دانلودر','یوتیوب و…','send:download'],
+  ['🎵','موزیک','جستجو و دانلود','send:music'],
+  ['💎','عضویت ویژه','بدون محدودیت','send:vip'],
+];
+const TOOLS = [
+  ['🌤','آب‌وهوا','tool:weather'], ['💰','بازار','tool:market'],
+  ['🔤','فونت‌ساز','tool:font'], ['🧮','ماشین‌حساب','tool:calc'],
+  ['🔄','تبدیل واحد','tool:convert'], ['🕓','ساعت و تاریخ','tool:clock'],
+];
+function renderGrid(el, items){
+  el.innerHTML = items.map(([ic,t,s,act]) =>
+    `<div class="card" data-act="${act}"><span class="ic">${ic}</span>
+      <div class="t">${t}</div><div class="s">${s||''}</div></div>`).join('');
+  el.querySelectorAll('[data-act]').forEach(c => c.onclick = () => {
+    buzz(); const act = c.dataset.act;
+    if(act.startsWith('send:')) send(act.slice(5));
+    else if(act.startsWith('tool:')) openTool(act.slice(5));
+  });
+}
+renderGrid($('#homeGrid'), HOME);
+renderGrid($('#toolsGrid'), TOOLS);
+
+/* ---------- ناوبری ---------- */
+function show(tab){
+  ['home','tools','fun','me'].forEach(t => {
+    $('#page-'+t).classList.toggle('hidden', t !== tab);
+  });
+  $$('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  if(tg && tg.BackButton){
+    if(tab === 'home'){ tg.BackButton.hide(); }
+    else { tg.BackButton.show(); tg.BackButton.onClick(() => show('home')); }
+  }
+  if(tab === 'me') loadMe();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+$$('nav.tabs button').forEach(b => b.onclick = () => { buzz(); show(b.dataset.tab); });
+
+/* ---------- ابزارها ---------- */
+const WMO = {0:['آفتابی','☀️'],1:['کمی ابری','🌤'],2:['نیمه‌ابری','⛅️'],3:['ابری','☁️'],
+  45:['مه','🌫'],48:['مه','🌫'],51:['نم‌نم','🌦'],53:['باران','🌦'],55:['باران شدید','🌧'],
+  61:['باران','🌧'],63:['باران','🌧'],65:['باران شدید','🌧'],71:['برف','🌨'],73:['برف','❄️'],
+  75:['برف شدید','❄️'],80:['رگبار','🌦'],81:['رگبار','🌧'],82:['رگبار شدید','⛈'],
+  95:['رعد و برق','⛈'],96:['تگرگ','⛈'],99:['رعد و برق شدید','⛈']};
+
+const TOOL_UI = {
+  weather: () => `
+    <h2>🌤 آب‌وهوا</h2>
+    <div class="row">
+      <input id="wCity" placeholder="نام شهر (مثال: تهران / London)">
+      <button id="wGo">بگیر ☁️</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      ${['تهران','مشهد','شیراز','اصفهان','تبریز','لندن'].map(c=>`<span class="chip" data-city="${c}">${c}</span>`).join('')}
+    </div>
+    <div class="out" id="wOut">منتظر ورودی…</div>`,
+
+  market: () => `
+    <h2>💰 بازار</h2>
+    <div class="row">
+      <button id="mGo">نرخ ارز و طلا 🥇</button>
+      <button class="ghost" id="mFx">نرخ رسمی ارزها</button>
+    </div>
+    <div class="out" id="mOut">روی دکمه بزن…</div>`,
+
+  crypto: () => `
+    <h2>🪙 ارز دیجیتال</h2>
+    <div class="row"><button id="cGo">دریافت قیمت‌ها</button></div>
+    <div class="out" id="cOut">قیمت لحظه‌ای از CoinGecko…</div>`,
+
+  font: () => `
+    <h2>🔤 فونت‌ساز</h2>
+    <input id="fIn" placeholder="متن خود را بنویس…" style="width:100%">
+    <div class="row" style="margin-top:8px">
+      ${Object.keys(FONTS).map(k=>`<span class="chip" data-font="${k}">${k}</span>`).join('')}
+    </div>
+    <div class="out" id="fOut">یک سبک انتخاب کن ✨</div>`,
+
+  calc: () => `
+    <h2>🧮 ماشین‌حساب</h2>
+    <input id="cIn" placeholder="مثال: (12+8)*3" style="width:100%;font-size:16px">
+    <div class="keys">
+      ${['7','8','9','/','4','5','6','*','1','2','3','-','0','.','C','+']
+        .map(k=>`<button class="ghost" data-k="${k}">${k}</button>`).join('')}
+    </div>
+    <div class="row" style="margin-top:8px"><button id="calcGo">محاسبه =</button></div>
+    <div class="out" id="calcOut">پاسخ اینجا…</div>`,
+
+  convert: () => `
+    <h2>🔄 تبدیل واحد</h2>
+    <div class="row">
+      <input id="cvVal" inputmode="decimal" placeholder="مقدار" style="max-width:110px">
+      <select id="cvFrom"></select>
+      <select id="cvTo"></select>
+    </div>
+    <div class="row" style="margin-top:8px"><button id="cvGo">تبدیل کن 🔄</button></div>
+    <div class="out" id="cvOut">…</div>`,
+
+  clock: () => `
+    <h2>🕓 ساعت و تاریخ</h2>
+    <div class="out" id="clkOut"></div>
+    <div class="row" style="margin-top:8px">
+      ${['تهران','لندن','استانبول','دبی','نیویورک','توکیو'].map(c=>`<span class="chip" data-clk="${c}">${c}</span>`).join('')}
+    </div>`
+};
+
+const UNITS = {
+  'متر':'m','کیلومتر':'km','سانتی‌متر':'cm','مایل':'mi','فوت':'ft',
+  'کیلوگرم':'kg','گرم':'g','پوند':'lb',
+  'سانتی‌گراد':'c','فارنهایت':'f','کلوین':'k',
+  'ثانیه':'s','دقیقه':'min','ساعت':'h','روز':'d'
+};
+const FACT = {m:1,km:1000,cm:.01,mi:1609.344,ft:.3048,kg:1,g:.001,lb:.45359237,s:1,min:60,h:3600,d:86400};
+
+function openTool(name){
+  $('#toolBox').innerHTML = `<div class="panel fade">${TOOL_UI[name]()}</div>`;
+  $('#toolBox').scrollIntoView({behavior:'smooth', block:'center'});
+
+  if(name === 'weather'){
+    const go = async (city) => {
+      const out = $('#wOut');
+      out.innerHTML = '<div class="skeleton"></div><div class="skeleton" style="width:70%"></div>';
+      try{
+        const g = await jget('https://geocoding-api.open-meteo.com/v1/search?count=1&language=fa&format=json&name=' + encodeURIComponent(city));
+        const r = (g.results||[])[0];
+        if(!r) throw new Error('شهر پیدا نشد');
+        const f = await jget(`https://api.open-meteo.com/v1/forecast?latitude=${r.latitude}&longitude=${r.longitude}`
+          + '&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m'
+          + '&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=3');
+        const c = f.current, [txt, emo] = WMO[c.weather_code] || ['نامشخص','🌡'];
+        out.innerHTML =
+          `${emo} آب‌وهوای <b>${r.name}</b>\n` +
+          `───────────────\n` +
+          `🌡 دما: ${fa(Math.round(c.temperature_2m))}°C\n` +
+          `🤔 حس واقعی: ${fa(Math.round(c.apparent_temperature))}°C\n` +
+          `💧 رطوبت: ${fa(c.relative_humidity_2m)}٪\n` +
+          `💨 باد: ${fa(Math.round(c.wind_speed_10m))} km/h\n` +
+          `📌 ${txt}\n───────────────\n📅 پیش‌بینی:\n` +
+          (f.daily.time||[]).slice(0,3).map((d,i)=>{
+            const [t2,e2] = WMO[f.daily.weather_code[i]] || ['','🌡'];
+            return `▫️ ${fa(d.slice(5))} ${e2} ${fa(Math.round(f.daily.temperature_2m_max[i]))}° / ${fa(Math.round(f.daily.temperature_2m_min[i]))}°`;
+          }).join('\n');
+      }catch(e){ out.textContent = '⚠️ نتوانستم آب‌وهوا را بگیرم: ' + e.message; }
+    };
+    $('#wGo').onclick = () => go($('#wCity').value.trim() || 'تهران');
+    $$('[data-city]').forEach(c => c.onclick = () => { $('#wCity').value = c.dataset.city; go(c.dataset.city); });
+  }
+
+  if(name === 'market'){
+    $('#mGo').onclick = () => send('market');
+    $('#mFx').onclick = async () => {
+      const out = $('#mOut');
+      out.innerHTML = '<div class="skeleton"></div><div class="skeleton" style="width:60%"></div>';
+      try{
+        const d = await jget('https://open.er-api.com/v6/latest/USD');
+        const rows = [['💵 دلار','USD'],['💶 یورو','EUR'],['💷 پوند','GBP'],['🕌 درهم','AED'],
+                      ['🇹🇷 لیر','TRY'],['🇨🇳 یوان','CNY']];
+        out.innerHTML = rows.map(([l,c]) =>
+          `<div class="kv"><span>${l}</span><b>${fa((d.rates[c]*10).toLocaleString('fa-IR',{maximumFractionDigits:0}))} تومان</b></div>`
+        ).join('') + `<div class="muted" style="margin-top:8px">نرخ رسمی · بروزرسانی: ${fa((d.time_last_update_utc||'').slice(0,16))}</div>`;
+      }catch(e){ out.textContent = '⚠️ دریافت ناموفق: ' + e.message; }
+    };
+  }
+
+  if(name === 'crypto'){
+    $('#cGo').onclick = async () => {
+      const out = $('#cOut');
+      out.innerHTML = '<div class="skeleton"></div><div class="skeleton" style="width:75%"></div><div class="skeleton" style="width:50%"></div>';
+      try{
+        const ids = 'bitcoin,ethereum,tether,binancecoin,solana,tron,dogecoin,litecoin';
+        const d = await jget('https://api.coingecko.com/api/v3/simple/price?ids=' + ids + '&vs_currencies=usd');
+        const names = {bitcoin:'🟠 بیت‌کوین',ethereum:'🟣 اتریوم',tether:'🟢 تتر',
+          binancecoin:'🟡 BNB',solana:'🟦 سولانا',tron:'🔴 ترون',dogecoin:'🟤 دوج',litecoin:'⚪️ لایت‌کوین'};
+        out.innerHTML = Object.keys(names).map(k =>
+          `<div class="kv"><span>${names[k]}</span><b>${d[k] ? fa(d[k].usd.toLocaleString('en-US')) + ' $' : '—'}</b></div>`
+        ).join('');
+      }catch(e){ out.textContent = '⚠️ دریافت ناموفق: ' + e.message; }
+    };
+  }
+
+  if(name === 'font'){
+    $$('[data-font]').forEach(ch => ch.onclick = () => {
+      const txt = $('#fIn').value.trim(); if(!txt) return toast('اول یک متن بنویس ✍️');
+      $('#fOut').textContent = FONTS[ch.dataset.font](txt); buzz();
+    });
+    $('#fIn').oninput = () => { const t = $('#fIn').value.trim();
+      if(t) $('#fOut').textContent = FONTS['پررنگ'](t); };
+  }
+
+  if(name === 'calc'){
+    const inp = $('#cIn');
+    $$('[data-k]').forEach(b => b.onclick = () => {
+      const k = b.dataset.k; buzz();
+      inp.value = (k === 'C') ? '' : inp.value + k;
+    });
+    $('#calcGo').onclick = () => {
+      const expr = inp.value.replace(/[×]/g,'*').replace(/[÷]/g,'/').replace(/[۰-۹]/g, d=>'0123456789'['۰۱۲۳۴۵۶۷۸۹'.indexOf(d)]);
+      if(!/^[\d\s+\-*/().]+$/.test(expr)) return toast('فقط عدد و عملگر مجاز است');
+      try{
+        const res = Function('"use strict";return (' + expr + ')')();
+        $('#calcOut').textContent = `${expr} = ${fa(Number(res.toFixed(6)))}`;
+      }catch(e){ $('#calcOut').textContent = '❌ عبارت نامعتبر'; }
+    };
+  }
+
+  if(name === 'convert'){
+    const sel1 = $('#cvFrom'), sel2 = $('#cvTo');
+    Object.keys(UNITS).forEach(k => {
+      sel1.insertAdjacentHTML('beforeend', `<option>${k}</option>`);
+      sel2.insertAdjacentHTML('beforeend', `<option>${k}</option>`);
+    });
+    sel1.value = 'کیلومتر'; sel2.value = 'متر';
+    $('#cvGo').onclick = () => {
+      const v = parseFloat($('#cvVal').value.replace(/[۰-۹]/g, d=>'0123456789'['۰۱۲۳۴۵۶۷۸۹'.indexOf(d)]));
+      const a = UNITS[sel1.value], b = UNITS[sel2.value];
+      if(isNaN(v)) return toast('یک عدد وارد کن');
+      let out;
+      if(a === 'c' || b === 'c'){
+        let c = a==='c' ? v : a==='f' ? (v-32)*5/9 : v-273.15;
+        out = b==='c' ? c : b==='f' ? c*9/5+32 : c+273.15;
+      }else if((a==='c'||a==='f'||a==='k') || (b==='c'||b==='f'||b==='k')){
+        return toast('تبدیل دما فقط با واحد دمایی ممکن است');
+      }else{ out = v * FACT[a] / FACT[b]; }
+      $('#cvOut').textContent = `${fa(v)} ${sel1.value} = ${fa(Number(out.toFixed(6)))} ${sel2.value}`;
+    };
+  }
+
+  if(name === 'clock'){
+    const TZ = {تهران:3.5, لندن:1, استانبول:3, دبی:4, نیویورک:-4, توکیو:9};
+    const render = (city) => {
+      const off = TZ[city] || 3.5;
+      const now = new Date(Date.now() + (off*60 + new Date().getTimezoneOffset())*60000);
+      $('#clkOut').innerHTML =
+        `🇮🇷 تاریخ ایران: ${jalaliNow()}\n───────────────\n` +
+        `🕓 ساعت ${city}: ${fa(String(now.getHours()).padStart(2,'0'))}:${fa(String(now.getMinutes()).padStart(2,'0'))}`;
+    };
+    render('تهران');
+    $$('[data-clk]').forEach(c => c.onclick = () => { buzz(); render(c.dataset.clk); });
+  }
+}
+
+/* ---------- سرگرمی ---------- */
+let secret = Math.floor(Math.random()*100)+1, tries = 0;
+$('#guessBtn').onclick = () => {
+  const v = parseInt($('#guessIn').value.replace(/[۰-۹]/g, d=>'0123456789'['۰۱۲۳۴۵۶۷۸۹'.indexOf(d)]),10);
+  if(isNaN(v)) return toast('یک عدد بنویس');
+  tries++; buzz();
+  const o = $('#guessOut');
+  if(v === secret) o.textContent = `🎉 آفرین! عدد ${fa(secret)} بود (${fa(tries)} حدس)`;
+  else if(v < secret) o.textContent = `⬆️ بالاتر · حدس ${fa(tries)}`;
+  else o.textContent = `⬇️ پایین‌تر · حدس ${fa(tries)}`;
+  $('#guessIn').value = '';
+};
+$$('[data-fun]').forEach(b => b.onclick = async () => {
+  const kind = b.dataset.fun; const out = $('#funOut'); buzz();
+  out.innerHTML = '<div class="skeleton"></div><div class="skeleton" style="width:80%"></div>';
+  try{
+    if(kind === 'joke'){
+      const j = await jget('./data/jokes.json');
+      out.textContent = '😂 ' + j[Math.floor(Math.random()*j.length)];
+    }else if(kind === 'poem'){
+      const p = await jget('./data/poems.json'); const it = p[Math.floor(Math.random()*p.length)];
+      out.textContent = `📜 ${it.poet}\n───────────────\n${it.text}`;
+    }else if(kind === 'fal'){
+      const f = await jget('./data/hafez.json');
+      const i = new Date().getDate() % f.length;
+      out.textContent = `🔮 فال امروز\n───────────────\n${f[i].poem}\n───────────────\n📖 ${f[i].meaning}`;
+    }else{
+      const c = await jget('./data/challenges.json');
+      out.textContent = '🏆 چالش امروز\n───────────────\n' + c[new Date().getDate() % c.length];
+    }
+  }catch(e){ out.textContent = '⚠️ بارگذاری ناموفق بود.'; }
+});
+
+/* ---------- دسترسی سریع و ارسال به ربات ---------- */
+$$('[data-quick]').forEach(c => c.onclick = () => {
+  const q = c.dataset.quick;
+  if(q === 'weather'){ show('tools'); setTimeout(()=>openTool('weather'), 60); $('#wCity') && ($('#wCity').value='تهران'); }
+  else if(q === 'crypto'){ show('tools'); setTimeout(()=>{ openTool('crypto'); $('#cGo').click(); }, 80); }
+  else if(q === 'clock'){ show('tools'); setTimeout(()=>openTool('clock'), 60); }
+  else if(q === 'joke'){ show('fun'); setTimeout(()=>document.querySelector('[data-fun="joke"]').click(), 80); }
+  else if(q === 'fal'){ show('fun'); setTimeout(()=>document.querySelector('[data-fun="fal"]').click(), 80); }
+});
+$$('[data-send]').forEach(c => c.onclick = () => {
+  const a = c.dataset.send;
+  if(a === 'qr'){ const t = prompt('متن یا لینک برای QR:'); if(t) send('qr', {text:t}); }
+  else if(a === 'ai'){ const t = prompt('چه می‌خواهی بپرسی؟'); if(t) send('ai_chat', {text:t}); }
+  else if(a === 'image'){ const t = prompt('توصیف تصویر (فارسی یا انگلیسی):'); if(t) send('ai_image', {prompt:t}); }
+  else if(a === 'music'){ const t = prompt('نام آهنگ یا خواننده:'); if(t) send('music', {query:t}); }
+  else if(a === 'download'){ const t = prompt('لینک ویدیو/پست:'); if(t) send('download', {url:t}); }
+  else if(a === 'tts'){ const t = prompt('متن برای تبدیل به ویس:'); if(t) send('tts', {text:t}); }
+  else send(a);
+});
+
+/* ---------- حساب من ---------- */
+function loadMe(){
+  if(!tg || !tg.initDataUnsafe || !tg.initDataUnsafe.user){
+    $('#meBox').textContent = 'برای دیدن حساب، مینی‌اپ را از داخل تلگرام باز کن.';
+    return;
+  }
+  const u = tg.initDataUnsafe.user;
+  $('#meBox').innerHTML =
+    `👤 ${u.first_name || 'کاربر'}${u.last_name ? ' ' + u.last_name : ''}\n` +
+    `───────────────\n` +
+    `▫️ شناسه: ${fa(u.id)}\n` +
+    `▫️ نام کاربری: ${u.username ? '@' + u.username : '—'}\n` +
+    `▫️ زبان: ${u.language_code || '—'}\n` +
+    `▫️ تاریخ امروز: ${jalaliNow()}`;
+}
+
+/* ---------- شروع ---------- */
+applyTheme();
+if(tg){
+  tg.ready(); try{ tg.expand(); }catch(e){}
+  if(tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.is_premium){
+    const b = $('#vipBadge'); b.className = 'badge vip'; b.textContent = '⭐️ کاربر پریمیوم تلگرام';
+  }
+}
+show('home');
+</script>
+</body>
+</html>

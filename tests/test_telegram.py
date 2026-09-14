@@ -9,7 +9,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from astra.core.context import parse_update                  # noqa: E402
 from astra.core.factory import resolve_platform              # noqa: E402
-from astra.core.keyboards import btn, chat_keypad, kb, main_menu  # noqa: E402
+from astra.core.keyboards import (btn, chat_keypad, kb, main_menu,  # noqa: E402
+                                     web_app_btn)
 from astra.core.telegram import (to_inline_keyboard,         # noqa: E402
                                  to_reply_keyboard, detect_platform)
 
@@ -64,7 +65,7 @@ class TestKeyboardConversion(unittest.TestCase):
         """همه‌ی دکمه‌های منوی اصلی باید به callback_data تبدیل شوند."""
         result = to_inline_keyboard(main_menu())
         total = sum(len(row) for row in result["inline_keyboard"])
-        self.assertEqual(total, 9)          # ۹ بخش اصلی
+        self.assertEqual(total, 10)         # ۹ بخش + دکمه‌ی مینی‌اپ
 
 
 class TestTelegramParsing(unittest.TestCase):
@@ -118,6 +119,21 @@ class TestTelegramParsing(unittest.TestCase):
                            "chat": {"id": -100999, "type": "group"},
                            "forward_origin": {"type": "user"}}}
         self.assertTrue(parse_update(raw).is_forwarded)
+
+    def test_web_app_data(self):
+        raw = {"update_id": 20,
+               "message": {"message_id": 21, "text": "",
+                           "from": {"id": 666},
+                           "chat": {"id": 666, "type": "private"},
+                           "web_app_data": {"data": '{"action":"weather","city":"شیراز"}'}}}
+        update = parse_update(raw)
+        self.assertEqual(update.web_app_data, '{"action":"weather","city":"شیراز"}')
+        self.assertEqual(update.sender_id, "666")
+
+    def test_web_app_button_conversion(self):
+        keypad = kb().row(web_app_btn("🚀 باز کردن", "https://example.com/app")).build()
+        button = to_inline_keyboard(keypad)["inline_keyboard"][0][0]
+        self.assertEqual(button["web_app"]["url"], "https://example.com/app")
 
     def test_rubika_still_works(self):
         raw = {"inline_message": {"chat_id": "u0ABC", "sender_id": "u0ABC",

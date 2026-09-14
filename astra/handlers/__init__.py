@@ -17,9 +17,10 @@ from . import group            # مدیریت گروه
 from . import vip              # عضویت ویژه
 from . import admin            # پنل ادمین
 from . import help as help_mod # راهنما و پشتیبانی
+from . import miniapp         # مینی‌اپ (Telegram Web App)
 from . import fallback         # زبان طبیعی و پیام ناشناخته
 
 __all__ = [
     "start", "practical", "tools", "music", "ai", "downloader",
-    "fun", "group", "vip", "admin", "help_mod", "fallback",
+    "fun", "group", "vip", "admin", "help_mod", "miniapp", "fallback",
 ]

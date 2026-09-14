@@ -23,6 +23,10 @@ def url_btn(text: str, url: str) -> dict:
     return {"id": url[:64], "type": "Link", "button_text": text, "link_url": url}
 
 
+def web_app_btn(text: str, url: str, callback: str = "app:open") -> dict:
+    return {"id": callback, "type": "WebApp", "button_text": text, "url": url}
+
+
 class InlineKeyboard:
     """سازنده‌ی کیبورد شیشه‌ای با چیدمان خودکار."""
 
@@ -96,6 +100,7 @@ def main_menu() -> dict:
         .row(btn("🌤 کاربردی", "menu:practical"), btn("🎮 سرگرمی", "menu:fun"))
         .row(btn("⚙️ مدیریت گروه", "menu:group"), btn("💎 عضویت ویژه", "menu:vip"))
         .row(btn("ℹ️ راهنما و پشتیبانی", "menu:help"))
+        .row(btn("✨ مینی‌اپ آسترا", "app:open"))
         .build()
     )
 

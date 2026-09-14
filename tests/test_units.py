@@ -118,7 +118,7 @@ class TestFonts(unittest.TestCase):
 class TestKeyboards(unittest.TestCase):
     def test_main_menu_structure(self):
         menu = main_menu()
-        self.assertEqual(len(menu["rows"]), 5)
+        self.assertEqual(len(menu["rows"]), 6)
         for row in menu["rows"]:
             self.assertLessEqual(len(row["buttons"]), 3)
 

@@ -43,6 +43,8 @@ class RubikaError(Exception):
 class RubikaClient:
     """کلاینت سبک، سریع و قابل‌اعتماد برای Bot API روبیکا."""
 
+    platform = "rubika"
+
     def __init__(self, token: str | None = None, timeout: int | None = None,
                  session: requests.Session | None = None) -> None:
         self.token = token or config.BOT_TOKEN
