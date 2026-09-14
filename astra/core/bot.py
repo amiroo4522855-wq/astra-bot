@@ -25,7 +25,9 @@ class AstraBot:
         self.platform = resolve_platform(platform, token) if client is None else \
             getattr(client, "platform", "rubika")
         self.client = client or create_client(self.platform, token)
-        self.offset: str = self.db.get_setting("offset_id", "")
+        # آفست هر پلتفرم جداگانه ذخیره می‌شود (تلگرام عددی است، روبیکا رشته‌ای)
+        self.offset_key = f"offset_id:{self.platform}"
+        self.offset: str = self.db.get_setting(self.offset_key, "")
         self.running = True
         self.processed = 0
         self._pool = ThreadPoolExecutor(max_workers=config.WORKERS,
@@ -88,7 +90,7 @@ class AstraBot:
             next_offset = self._next_offset(raw)
             if next_offset:
                 self.offset = next_offset
-        self.db.set_setting("offset_id", str(self.offset))
+        self.db.set_setting(self.offset_key, str(self.offset))
         return len(updates)
 
     def run(self) -> None:
@@ -115,6 +117,9 @@ class AstraBot:
     def bootstrap(self) -> None:
         """بررسی اتصال و ثبت دستورات (در صورت امکان)."""
         label = "تلگرام 🤖" if self.platform == "telegram" else "روبیکا ✨"
+        if config.PLATFORM == "auto" and config.BOT_TOKEN and config.TELEGRAM_BOT_TOKEN:
+            print("⚠️  هر دو توکن تنظیم شده‌اند؛ پیش‌فرض = روبیکا.\n"
+                  "   برای تلگرام: python main.py --platform telegram")
         try:
             info = self.client.get_me()
             bot = info.get("bot") or info
