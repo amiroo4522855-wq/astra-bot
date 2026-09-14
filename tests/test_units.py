@@ -316,6 +316,17 @@ class TestCities(unittest.TestCase):
         finally:
             weather.get_json = real_get
 
+    def test_all_province_capitals_exist(self):
+        """مرکز هر ۳۱ استان باید در فهرست باشد."""
+        from astra.services import weather
+        caps = ["تهران","مشهد","اصفهان","شیراز","تبریز","کرج","قم","اهواز","کرمانشاه",
+                "ارومیه","رشت","زاهدان","همدان","کرمان","یزد","اردبیل","بندرعباس","بوشهر",
+                "زنجان","قزوین","سنندج","ساری","گرگان","خرم‌آباد","بیرجند","ایلام","یاسوج",
+                "شهرکرد","بجنورد","سمنان"]
+        missing = [c for c in caps if weather.find_local(c) is None]
+        self.assertEqual(missing, [], f"جا مانده: {missing}")
+        self.assertEqual(len(weather.provinces()), 31)
+
     def test_unknown_city(self):
         from astra.services import weather
         self.assertIsNone(weather.find_local("شهرخیالینداره"))

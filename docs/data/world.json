@@ -1,0 +1,629 @@
+{
+ "count": 78,
+ "cities": [
+  {
+   "name": "آتن",
+   "en": "Athens",
+   "tz": "Europe/Athens",
+   "country": "Greece",
+   "lat": 37.9838,
+   "lon": 23.7278
+  },
+  {
+   "name": "آمستردام",
+   "en": "Amsterdam",
+   "tz": "Europe/Amsterdam",
+   "country": "The Netherlands",
+   "lat": 52.374,
+   "lon": 4.8897
+  },
+  {
+   "name": "آنکارا",
+   "en": "Ankara",
+   "tz": "Europe/Istanbul",
+   "country": "Republic of Türkiye",
+   "lat": 39.9199,
+   "lon": 32.8543
+  },
+  {
+   "name": "آکلند",
+   "en": "Auckland",
+   "tz": "Pacific/Auckland",
+   "country": "New Zealand",
+   "lat": -36.8485,
+   "lon": 174.7635
+  },
+  {
+   "name": "استانبول",
+   "en": "Istanbul",
+   "tz": "Europe/Istanbul",
+   "country": "Republic of Türkiye",
+   "lat": 41.0138,
+   "lon": 28.9497
+  },
+  {
+   "name": "استکهلم",
+   "en": "Stockholm",
+   "tz": "Europe/Stockholm",
+   "country": "Sweden",
+   "lat": 59.3294,
+   "lon": 18.0687
+  },
+  {
+   "name": "اسلام‌آباد",
+   "en": "Islamabad",
+   "tz": "Asia/Karachi",
+   "country": "Pakistan",
+   "lat": 33.6844,
+   "lon": 73.0479
+  },
+  {
+   "name": "ایروان",
+   "en": "Yerevan",
+   "tz": "Asia/Yerevan",
+   "country": "Armenia",
+   "lat": 40.1792,
+   "lon": 44.4991
+  },
+  {
+   "name": "بانکوک",
+   "en": "Bangkok",
+   "tz": "Asia/Bangkok",
+   "country": "Thailand",
+   "lat": 13.754,
+   "lon": 100.5014
+  },
+  {
+   "name": "باکو",
+   "en": "Baku",
+   "tz": "Asia/Baku",
+   "country": "Azerbaijan",
+   "lat": 40.3777,
+   "lon": 49.892
+  },
+  {
+   "name": "بخارست",
+   "en": "Bucharest",
+   "tz": "Europe/Bucharest",
+   "country": "Romania",
+   "lat": 44.4323,
+   "lon": 26.1063
+  },
+  {
+   "name": "برلین",
+   "en": "Berlin",
+   "tz": "Europe/Berlin",
+   "country": "Germany",
+   "lat": 52.5244,
+   "lon": 13.4105
+  },
+  {
+   "name": "بروکسل",
+   "en": "Brussels",
+   "tz": "Europe/Brussels",
+   "country": "Belgium",
+   "lat": 50.8505,
+   "lon": 4.3488
+  },
+  {
+   "name": "بغداد",
+   "en": "Baghdad",
+   "tz": "Asia/Baghdad",
+   "country": "Iraq",
+   "lat": 33.3406,
+   "lon": 44.4009
+  },
+  {
+   "name": "بمبئی",
+   "en": "Mumbai",
+   "tz": "Asia/Kolkata",
+   "country": "India",
+   "lat": 19.076,
+   "lon": 72.8777
+  },
+  {
+   "name": "بوداپست",
+   "en": "Budapest",
+   "tz": "Europe/Budapest",
+   "country": "Hungary",
+   "lat": 47.4979,
+   "lon": 19.0402
+  },
+  {
+   "name": "بوستون",
+   "en": "Boston",
+   "tz": "America/New_York",
+   "country": "United States",
+   "lat": 42.3584,
+   "lon": -71.0598
+  },
+  {
+   "name": "بوگوتا",
+   "en": "Bogota",
+   "tz": "America/Bogota",
+   "country": "Colombia",
+   "lat": 4.6097,
+   "lon": -74.0817
+  },
+  {
+   "name": "بوینس‌آیرس",
+   "en": "Buenos Aires",
+   "tz": "America/Argentina/Buenos_Aires",
+   "country": "Argentina",
+   "lat": -34.6131,
+   "lon": -58.3772
+  },
+  {
+   "name": "تاشکند",
+   "en": "Tashkent",
+   "tz": "Asia/Tashkent",
+   "country": "Uzbekistan",
+   "lat": 41.2647,
+   "lon": 69.2163
+  },
+  {
+   "name": "تفلیس",
+   "en": "Tbilisi",
+   "tz": "Asia/Tbilisi",
+   "country": "Georgia",
+   "lat": 41.6914,
+   "lon": 44.8341
+  },
+  {
+   "name": "تهران",
+   "en": "Tehran",
+   "tz": "Asia/Tehran",
+   "country": "Iran",
+   "lat": 35.6944,
+   "lon": 51.4215
+  },
+  {
+   "name": "تورنتو",
+   "en": "Toronto",
+   "tz": "America/Toronto",
+   "country": "Canada",
+   "lat": 43.7064,
+   "lon": -79.3986
+  },
+  {
+   "name": "توکیو",
+   "en": "Tokyo",
+   "tz": "Asia/Tokyo",
+   "country": "Japan",
+   "lat": 35.6895,
+   "lon": 139.6917
+  },
+  {
+   "name": "جاکارتا",
+   "en": "Jakarta",
+   "tz": "Asia/Jakarta",
+   "country": "Indonesia",
+   "lat": -6.2146,
+   "lon": 106.8451
+  },
+  {
+   "name": "دالاس",
+   "en": "Dallas",
+   "tz": "America/Chicago",
+   "country": "United States",
+   "lat": 32.7831,
+   "lon": -96.8067
+  },
+  {
+   "name": "داکا",
+   "en": "Dhaka",
+   "tz": "Asia/Dhaka",
+   "country": "Bangladesh",
+   "lat": 23.7104,
+   "lon": 90.4074
+  },
+  {
+   "name": "دبی",
+   "en": "Dubai",
+   "tz": "Asia/Dubai",
+   "country": "United Arab Emirates",
+   "lat": 25.0772,
+   "lon": 55.3093
+  },
+  {
+   "name": "دنور",
+   "en": "Denver",
+   "tz": "America/Denver",
+   "country": "United States",
+   "lat": 39.7392,
+   "lon": -104.9847
+  },
+  {
+   "name": "دهلی",
+   "en": "Delhi",
+   "tz": "Asia/Kolkata",
+   "country": "India",
+   "lat": 28.6139,
+   "lon": 77.209
+  },
+  {
+   "name": "دوبلین",
+   "en": "Dublin",
+   "tz": "Europe/Dublin",
+   "country": "Ireland",
+   "lat": 53.3331,
+   "lon": -6.2489
+  },
+  {
+   "name": "دوحه",
+   "en": "Doha",
+   "tz": "Asia/Qatar",
+   "country": "Qatar",
+   "lat": 25.2855,
+   "lon": 51.531
+  },
+  {
+   "name": "دوشنبه",
+   "en": "Dushanbe",
+   "tz": "Asia/Dushanbe",
+   "country": "Tajikistan",
+   "lat": 38.5358,
+   "lon": 68.779
+  },
+  {
+   "name": "رم",
+   "en": "Rome",
+   "tz": "Europe/Rome",
+   "country": "Italy",
+   "lat": 41.8919,
+   "lon": 12.5113
+  },
+  {
+   "name": "ریاض",
+   "en": "Riyadh",
+   "tz": "Asia/Riyadh",
+   "country": "Saudi Arabia",
+   "lat": 24.6877,
+   "lon": 46.7219
+  },
+  {
+   "name": "زوریخ",
+   "en": "Zurich",
+   "tz": "Europe/Zurich",
+   "country": "Switzerland",
+   "lat": 47.3769,
+   "lon": 8.5417
+  },
+  {
+   "name": "سئول",
+   "en": "Seoul",
+   "tz": "Asia/Seoul",
+   "country": "South Korea",
+   "lat": 37.566,
+   "lon": 126.9784
+  },
+  {
+   "name": "سائوپائولو",
+   "en": "Sao Paulo",
+   "tz": "America/Sao_Paulo",
+   "country": "Brazil",
+   "lat": -23.5475,
+   "lon": -46.6361
+  },
+  {
+   "name": "سانتیاگو",
+   "en": "Santiago",
+   "tz": "America/Santiago",
+   "country": "Chile",
+   "lat": -33.4569,
+   "lon": -70.6483
+  },
+  {
+   "name": "سانفرانسیسکو",
+   "en": "San Francisco",
+   "tz": "America/Los_Angeles",
+   "country": "United States",
+   "lat": 37.7749,
+   "lon": -122.4194
+  },
+  {
+   "name": "سنگاپور",
+   "en": "Singapore",
+   "tz": "Asia/Singapore",
+   "country": "Singapore",
+   "lat": 1.2897,
+   "lon": 103.8501
+  },
+  {
+   "name": "سیاتل",
+   "en": "Seattle",
+   "tz": "America/Los_Angeles",
+   "country": "United States",
+   "lat": 47.6062,
+   "lon": -122.3321
+  },
+  {
+   "name": "سیدنی",
+   "en": "Sydney",
+   "tz": "Australia/Sydney",
+   "country": "Australia",
+   "lat": -33.8678,
+   "lon": 151.2073
+  },
+  {
+   "name": "شانگهای",
+   "en": "Shanghai",
+   "tz": "Asia/Shanghai",
+   "country": "China",
+   "lat": 31.2222,
+   "lon": 121.4581
+  },
+  {
+   "name": "شیکاگو",
+   "en": "Chicago",
+   "tz": "America/Chicago",
+   "country": "United States",
+   "lat": 41.85,
+   "lon": -87.65
+  },
+  {
+   "name": "قاهره",
+   "en": "Cairo",
+   "tz": "Africa/Cairo",
+   "country": "Egypt",
+   "lat": 30.0626,
+   "lon": 31.2497
+  },
+  {
+   "name": "لاگوس",
+   "en": "Lagos",
+   "tz": "Africa/Lagos",
+   "country": "Nigeria",
+   "lat": 6.4541,
+   "lon": 3.3947
+  },
+  {
+   "name": "لس‌آنجلس",
+   "en": "Los Angeles",
+   "tz": "America/Los_Angeles",
+   "country": "United States",
+   "lat": 34.0522,
+   "lon": -118.2437
+  },
+  {
+   "name": "لندن",
+   "en": "London",
+   "tz": "Europe/London",
+   "country": "United Kingdom",
+   "lat": 51.5085,
+   "lon": -0.1257
+  },
+  {
+   "name": "لیسبون",
+   "en": "Lisbon",
+   "tz": "Europe/Lisbon",
+   "country": "Portugal",
+   "lat": 38.7251,
+   "lon": -9.1498
+  },
+  {
+   "name": "لیما",
+   "en": "Lima",
+   "tz": "America/Lima",
+   "country": "Peru",
+   "lat": -12.0432,
+   "lon": -77.0282
+  },
+  {
+   "name": "مادرید",
+   "en": "Madrid",
+   "tz": "Europe/Madrid",
+   "country": "Spain",
+   "lat": 40.4165,
+   "lon": -3.7026
+  },
+  {
+   "name": "مانیل",
+   "en": "Manila",
+   "tz": "Asia/Manila",
+   "country": "Philippines",
+   "lat": 14.6042,
+   "lon": 120.9822
+  },
+  {
+   "name": "مسکو",
+   "en": "Moscow",
+   "tz": "Europe/Moscow",
+   "country": "Russia",
+   "lat": 55.7558,
+   "lon": 37.6173
+  },
+  {
+   "name": "ملبورن",
+   "en": "Melbourne",
+   "tz": "Australia/Melbourne",
+   "country": "Australia",
+   "lat": -37.814,
+   "lon": 144.9633
+  },
+  {
+   "name": "مکزیکوسیتی",
+   "en": "Mexico City",
+   "tz": "America/Mexico_City",
+   "country": "Mexico",
+   "lat": 19.4285,
+   "lon": -99.1277
+  },
+  {
+   "name": "میامی",
+   "en": "Miami",
+   "tz": "America/New_York",
+   "country": "United States",
+   "lat": 25.7743,
+   "lon": -80.1937
+  },
+  {
+   "name": "نایروبی",
+   "en": "Nairobi",
+   "tz": "Africa/Nairobi",
+   "country": "Kenya",
+   "lat": -1.2833,
+   "lon": 36.8167
+  },
+  {
+   "name": "نیویورک",
+   "en": "New York",
+   "tz": "America/New_York",
+   "country": "United States",
+   "lat": 40.7143,
+   "lon": -74.006
+  },
+  {
+   "name": "هلسینکی",
+   "en": "Helsinki",
+   "tz": "Europe/Helsinki",
+   "country": "Finland",
+   "lat": 60.1695,
+   "lon": 24.9354
+  },
+  {
+   "name": "هنگ‌کنگ",
+   "en": "Hong Kong",
+   "tz": "Asia/Hong_Kong",
+   "country": "",
+   "lat": 22.2783,
+   "lon": 114.1747
+  },
+  {
+   "name": "هیوستون",
+   "en": "Houston",
+   "tz": "America/Chicago",
+   "country": "United States",
+   "lat": 29.7633,
+   "lon": -95.3633
+  },
+  {
+   "name": "واشینگتن",
+   "en": "Washington",
+   "tz": "America/New_York",
+   "country": "United States",
+   "lat": 38.8951,
+   "lon": -77.0364
+  },
+  {
+   "name": "ورشو",
+   "en": "Warsaw",
+   "tz": "Europe/Warsaw",
+   "country": "Poland",
+   "lat": 52.2297,
+   "lon": 21.0122
+  },
+  {
+   "name": "ونکوور",
+   "en": "Vancouver",
+   "tz": "America/Vancouver",
+   "country": "Canada",
+   "lat": 49.2497,
+   "lon": -123.1193
+  },
+  {
+   "name": "وین",
+   "en": "Vienna",
+   "tz": "Europe/Vienna",
+   "country": "Austria",
+   "lat": 48.2085,
+   "lon": 16.3721
+  },
+  {
+   "name": "پاریس",
+   "en": "Paris",
+   "tz": "Europe/Paris",
+   "country": "France",
+   "lat": 48.8566,
+   "lon": 2.3522
+  },
+  {
+   "name": "پراگ",
+   "en": "Prague",
+   "tz": "Europe/Prague",
+   "country": "Czechia",
+   "lat": 50.088,
+   "lon": 14.4208
+  },
+  {
+   "name": "پکن",
+   "en": "Beijing",
+   "tz": "Asia/Shanghai",
+   "country": "China",
+   "lat": 39.9075,
+   "lon": 116.3972
+  },
+  {
+   "name": "ژوهانسبورگ",
+   "en": "Johannesburg",
+   "tz": "Africa/Johannesburg",
+   "country": "South Africa",
+   "lat": -26.2023,
+   "lon": 28.0436
+  },
+  {
+   "name": "کابل",
+   "en": "Kabul",
+   "tz": "Asia/Kabul",
+   "country": "Afghanistan",
+   "lat": 34.5553,
+   "lon": 69.2075
+  },
+  {
+   "name": "کاتماندو",
+   "en": "Kathmandu",
+   "tz": "Asia/Kathmandu",
+   "country": "Nepal",
+   "lat": 27.7017,
+   "lon": 85.3206
+  },
+  {
+   "name": "کراچی",
+   "en": "Karachi",
+   "tz": "Asia/Karachi",
+   "country": "Pakistan",
+   "lat": 24.8608,
+   "lon": 67.0104
+  },
+  {
+   "name": "کوالالامپور",
+   "en": "Kuala Lumpur",
+   "tz": "Asia/Kuala_Lumpur",
+   "country": "Malaysia",
+   "lat": 3.1412,
+   "lon": 101.6865
+  },
+  {
+   "name": "کویت",
+   "en": "Kuwait City",
+   "tz": "Asia/Kuwait",
+   "country": "Kuwait",
+   "lat": 29.367,
+   "lon": 47.9743
+  },
+  {
+   "name": "کپنهاگ",
+   "en": "Copenhagen",
+   "tz": "Europe/Copenhagen",
+   "country": "Denmark",
+   "lat": 55.6761,
+   "lon": 12.5683
+  },
+  {
+   "name": "کیپ‌تاون",
+   "en": "Cape Town",
+   "tz": "Africa/Johannesburg",
+   "country": "South Africa",
+   "lat": -33.9258,
+   "lon": 18.4232
+  },
+  {
+   "name": "کی‌یف",
+   "en": "Kyiv",
+   "tz": "Europe/Kyiv",
+   "country": "Ukraine",
+   "lat": 50.4547,
+   "lon": 30.5238
+  }
+ ]
+}
