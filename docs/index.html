@@ -395,13 +395,13 @@ function jalaliNow(){const n=new Date();const[y,m,d]=toJalali(n.getFullYear(),n.
 
 /* ---------- داده ---------- */
 const TOOLS=[
- {k:'weather',t:'آب‌وهوا',s:'۴۱۵ شهر · ۳۱ استان'},c:'rgba(34,211,238,.32)'},
+ {k:'weather',t:'آب‌وهوا',s:'۴۱۵ شهر · ۳۱ استان',c:'rgba(34,211,238,.32)'},
  {k:'market',t:'ارز و طلا',s:'قیمت واقعی تومان',c:'rgba(52,211,153,.3)'},
  {k:'crypto',t:'کریپتو',s:'لحظه‌ای + تغییرات',c:'rgba(251,191,36,.28)'},
  {k:'font',t:'فونت‌ساز',s:'۷ سبک',c:'rgba(244,114,182,.28)'},
  {k:'calc',t:'ماشین‌حساب',s:'پیشرفته',c:'rgba(139,92,246,.32)'},
  {k:'convert',t:'تبدیل واحد',s:'۸ دسته',c:'rgba(96,165,250,.28)'},
- {k:'clock',t:'ساعت جهانی',s:'۷۸ شهر دنیا'},c:'rgba(45,212,191,.28)'},
+ {k:'clock',t:'ساعت جهانی',s:'۷۸ شهر دنیا',c:'rgba(45,212,191,.28)'},
 ];
 const BOT=[
  {k:'ai',i:'ai',t:'چت هوش مصنوعی',s:'سوال بپرس'},
@@ -553,6 +553,44 @@ const UI={
   </div>
   <div class="hist" id="cHist"></div>`,
 
+ music:()=>`<h2><svg class="ic"><use href="#i-music"/></svg> جستجوی آهنگ</h2>
+  <div class="row"><input id="muQ" placeholder="نام آهنگ یا خواننده…"></div>
+  <div class="row" style="margin-top:9px">
+   <select id="muKind" style="max-width:130px"><option value="audio">🎧 فقط صدا</option><option value="video">🎬 ویدیو</option></select>
+   <select id="muQ2" style="max-width:130px"><option value="192">192 kbps</option><option value="128">128 kbps</option><option value="320">320 (ویژه)</option></select>
+  </div>
+  <div class="row" style="margin-top:9px"><button id="muGo">🔍 جستجو و دریافت</button></div>
+  <p class="mut" style="margin:9px 0 0">نتیجه در چت تلگرام برایت می‌آید؛ ربات آهنگ را مستقیم دانلود و ارسال می‌کند 🎵</p>
+  <div class="out" id="muOut">نام آهنگ یا خواننده را بنویس…</div>`,
+
+ link:()=>`<h2><svg class="ic"><use href="#i-download"/></svg> تشخیص لینک</h2>
+  <div class="row"><input id="lkIn" placeholder="لینک را اینجا بچسبان…"></div>
+  <div class="row" style="margin-top:9px"><button id="lkGo">🔍 تشخیص بده</button></div>
+  <div class="out" id="lkOut">لینک اینستاگرام، یوتیوب، تیک‌تاک، پینترست، ایکس، ساندکلود… را بفرست تا تشخیص بدهم.</div>`,
+
+ bio:()=>`<h2><svg class="ic"><use href="#i-guide"/></svg> بیوگرافی‌ساز</h2>
+  <div class="row"><input id="bName" placeholder="نام یا اسم کانال" style="max-width:170px">
+   <input id="bField" placeholder="حوزه/شغل (مثل: طراحی، موسیقی)"></div>
+  <div class="mut" style="margin:10px 0 5px">سبک:</div>
+  <div class="row" id="bStyles"></div>
+  <div class="mut" style="margin:10px 0 5px">زبان:</div>
+  <div class="row" id="bLangs"></div>
+  <div class="row" style="margin-top:11px"><button id="bGo">✨ بساز</button>
+   <button class="ghost" id="bMore">🔁 بیشتر</button></div>
+  <div id="bOut"></div>`,
+
+ username:()=>`<h2><svg class="ic"><use href="#i-user"/></svg> یوزرنیم‌ساز تلگرام</h2>
+  <div class="row"><input id="uName" placeholder="نام یا کلمه‌ی کلیدی (فارسی هم می‌شود)"></div>
+  <div class="mut" style="margin:10px 0 5px">سبک:</div>
+  <div class="row" id="uStyles"></div>
+  <div class="row" style="margin-top:11px"><button id="uGo">✨ بساز</button></div>
+  <div id="uOut"></div>`,
+
+ namefont:()=>`<h2><svg class="ic"><use href="#i-font"/></svg> فونت اسم (۲۶ استایل)</h2>
+  <input id="nfIn" placeholder="اسم خود را بنویس…" style="width:100%">
+  <div class="mut" style="margin:10px 0 5px">روی هر خروجی بزن تا کپی شود 👇</div>
+  <div id="nfOut"></div>`,
+
  convert:()=>`<h2><svg class="ic"><use href="#i-convert"/></svg> تبدیل واحد</h2>
   <div class="row"><input id="cvVal" inputmode="decimal" placeholder="مقدار" style="max-width:110px">
    <select id="cvFrom"></select><select id="cvTo"></select></div>
@@ -597,6 +635,11 @@ async function openTool(name){
     if(name==='market') initMarket();
     if(name==='crypto') initCrypto();
     if(name==='font') initFont();
+    if(name==='music') initMusic();
+    if(name==='link') initLink();
+    if(name==='bio') initBio();
+    if(name==='username') initUsername();
+    if(name==='namefont') initNameFont();
     if(name==='calc') initCalc();
     if(name==='convert') initConvert();
     if(name==='clock') await initClock();
@@ -755,6 +798,243 @@ function initCrypto(){
   $('#cGo').onclick=()=>run();
   $('#cBot').onclick=()=>send('crypto');
   run();
+}
+
+
+/* ---------- موسیقی (ارسال به ربات) ---------- */
+function initMusic(){
+  const go=()=>{
+    const q=$('#muQ').value.trim();
+    if(q.length<2) return toast('نام آهنگ یا خواننده را بنویس 🎵');
+    const kind=$('#muKind').value, quality=$('#muQ2').value;
+    $('#muOut').textContent='⏳ فرستادم… نتیجه در چت تلگرام می‌آید.';
+    send('music',{query:q,kind,quality});
+  };
+  $('#muGo').onclick=go;
+  $('#muQ').onkeydown=e=>{if(e.key==='Enter') go();};
+  $('#muQ').value && go();
+}
+
+/* ---------- تشخیص لینک ---------- */
+const LINK_RULES=[
+ {re:/youtube\.com|youtu\.be/i, name:'یوتیوب ▶️', kinds:[['ytv','ویدیو 🎬'],['yta','فقط صدا 🎧']]},
+ {re:/instagram\.com/i, name:'اینستاگرام 📸', kinds:[['ig','پست، ریلز یا استوری 📸']]},
+ {re:/tiktok\.com/i, name:'تیک‌تاک 🕺', kinds:[['tt','ویدیو 🕺']]},
+ {re:/pinterest\.com|pin\.it/i, name:'پینترست 📌', kinds:[['pin','پین یا ویدیو 📌']]},
+ {re:/rubino/i, name:'روبینو 💠', kinds:[['rubino','پست 💠']]},
+ {re:/soundcloud\.com/i, name:'ساندکلود 🎧', kinds:[['yta','صدا 🎧']]},
+ {re:/spotify\.com/i, name:'اسپاتیفای 🎶', kinds:[['yta','صدا 🎧 (یوتیوب)']]},
+ {re:/(^|\/\/)(x|twitter)\.com/i, name:'ایکس / توییتر 🐦', kinds:[['tt','ویدیو 🐦']]},
+ {re:/facebook\.com|fb\.watch/i, name:'فیسبوک 👥', kinds:[['ytv','ویدیو 👥']]},
+ {re:/aparat\.com/i, name:'آپارات 🎞', kinds:[['ytv','ویدیو 🎞']]},
+ {re:/\.(mp4|mkv|webm|mov|mp3|m4a)(\?|$)/i, name:'فایل مستقیم 📁', kinds:[['ytv','دریافت 📁']]},
+];
+function detectLink(u){ for(const r of LINK_RULES) if(r.re.test(u)) return r; return null; }
+function initLink(){
+  const out=$('#lkOut');
+  const go=()=>{
+    const url=$('#lkIn').value.trim();
+    if(!/^https?:\/\//i.test(url)){ out.textContent='⚠️ لینک باید با http:// یا https:// شروع شود.'; return; }
+    const r=detectLink(url);
+    if(!r){
+      out.innerHTML='🤔 این لینک را نشناختم.\nمی‌توانم به‌عنوان ویدیو امتحانش کنم:';
+      const row=document.createElement('div'); row.className='row'; row.style.marginTop='10px';
+      const b=document.createElement('button'); b.className='ghost mini'; b.textContent='📥 امتحان کن';
+      b.onclick=()=>send('download',{url,kind:'ytv'}); row.appendChild(b); out.appendChild(row);
+      return;
+    }
+    out.innerHTML=`✅ تشخیص: <b>${r.name}</b>\n───────────────\nچه چیزی می‌خواهی؟`;
+    const row=document.createElement('div'); row.className='row'; row.style.marginTop='10px';
+    r.kinds.forEach(([k,label])=>{
+      const b=document.createElement('button'); b.className='ghost mini'; b.textContent='📥 '+label;
+      b.onclick=()=>send('download',{url,kind:k}); row.appendChild(b);
+    });
+    out.appendChild(row);
+  };
+  $('#lkGo').onclick=go;
+  $('#lkIn').onkeydown=e=>{if(e.key==='Enter') go();};
+}
+
+/* ---------- بیوگرافی‌ساز ---------- */
+const BIO_STYLES=['حرفه‌ای','دوستانه','مرموز','شاعرانه','گیمر','کاری','مینیمال','لاکچری','فان'];
+const BIOS={
+ 'حرفه‌ای':{fa:['{n} | {f}\nکیفیت، تعهد، نتیجه ✨\n📩 همکاری: پیام خصوصی',
+   '▫️ {n} ▫️\n{f} · با استاندارد بالا 🎯\nهر پروژه، یک امضا ✦'],
+  en:['{n} | {f}\nQuality · Commitment · Results ✨\n📩 DM for collaboration',
+   '▫️ {n} ▫️\n{f} — delivered with precision 🎯']},
+ 'دوستانه':{fa:['سلام! من {n} هستم 😊\nاینجا از {f} و روزمرگی می‌نویسم\nخوشحال می‌شم آشنا بشیم 🌱',
+   '{n}؛ عاشق {f} و آدم‌های خوب ☕\nهمراهی‌ات را دوست دارم 🤍'],
+  en:['Hi, I\'m {n} 😊\nSharing my life & {f}\nGlad you\'re here 🌱',
+   '{n} — coffee, {f} and good vibes ☕\nLet\'s be friends 🤍']},
+ 'مرموز':{fa:['{n}…\nهمه چیز آن‌طور که به‌نظر می‌رسد نیست 🖤\n{f}',
+   'سکوت، بهترین پاسخ است.\n{n} · {f} 🌑'],
+  en:['{n}…\nThings are not what they seem 🖤\n{f}',
+   'Silence is the best answer.\n{n} · {f} 🌑']},
+ 'شاعرانه':{fa:['من {n}؛ ردیف‌کننده‌ی واژه‌ها 🌿\n{f} را با دل می‌نویسم\n«گاهی سکوت، رساترین حرف‌هاست»',
+   '{n}؛ مسافرِ کوچه‌های خیال 🌙\n{f} · در جست‌وجوی زیبایی'],
+  en:['{n} — arranging words like stars 🌿\nWriting {f} from the heart',
+   'Wanderer of imagination 🌙\n{n} · {f}']},
+ 'گیمر':{fa:['🎮 {n}\n{f} | رنک بالا، حوصله کم 😎\nکلاب و استریم: پی‌وی',
+   '{n} 🎯\n{f} بازم؟ بزن بریم 🔥\nggwp همیشگی 😏'],
+  en:['🎮 {n}\n{f} | High rank, low patience 😎\nClubs & streams: DM',
+   '{n} 🎯\nOne more round? 🔥\nggwp always 😏']},
+ 'کاری':{fa:['{n} — {f}\nهمکاری و پروژه: پیام خصوصی 📈\nپاسخ‌گویی: شنبه تا چهارشنبه',
+   '{f} با مدیریت {n}\nقرارداد، مشاوره، اجرا 🤝'],
+  en:['{n} — {f}\nOpen for projects & collabs 📈\nReply: business days',
+   '{f}, managed by {n}\nConsulting · Contracts · Delivery 🤝']},
+ 'مینیمال':{fa:['{n}\n{f}\n·','{n} · {f}'],
+  en:['{n}\n{f}\n·','{n} · {f}']},
+ 'لاکچری':{fa:['✦ {n} ✦\n{f} · Special Edition\nهمه چیز در اوج ✨',
+   '♛ {n}\n{f} | فقط انتخاب‌های خاص 💎'],
+  en:['✦ {n} ✦\n{f} · Special Edition\nEverything at its peak ✨',
+   '♛ {n}\n{f} | Only the exceptional 💎']},
+ 'فان':{fa:['اینم من: {n} 😌\n{f}؟ نه، استادش! 😎\nبیا حرف بزنیم',
+   '{n}؛ نیمی {f}، نیمی شیطنت 😜\nلولِ صبر: ۳٪'],
+  en:['Me: {n} 😌\n{f}? No — the boss of it 😎\nLet\'s talk',
+   '{n}; half {f}, half mischief 😜\nPatience level: 3%']},
+};
+let bioStyle='حرفه‌ای', bioLang='فارسی';
+function initBio(){
+  const chip=(row,items,cur,cb)=>{
+    $(row).innerHTML=items.map(x=>`<span class="chip ${x===cur?'on':''}" data-v="${x}">${x}</span>`).join('');
+    $$(row+' .chip').forEach(c=>c.onclick=()=>{
+      cb(c.dataset.v); $$(row+' .chip').forEach(o=>o.classList.remove('on')); c.classList.add('on'); buzz();
+      if(row==='#bStyles'||row==='#bLangs') renderBio();
+    });
+  };
+  chip('#bStyles',BIO_STYLES,bioStyle,v=>bioStyle=v);
+  chip('#bLangs',['فارسی','انگلیسی','دو زبانه'],bioLang,v=>bioLang=v);
+  $('#bGo').onclick=()=>{renderBio(true);buzz();};
+  $('#bMore').onclick=()=>{renderBio(true);buzz();};
+  ['#bName','#bField'].forEach(id=>$(id).oninput=()=>{});
+  renderBio();
+}
+function renderBio(shuffle){
+  const n=($('#bName').value||'').trim()||'آسترا', f=($('#bField').value||'').trim()||'دنیای دیجیتال';
+  const st=BIOS[bioStyle]||BIOS['حرفه‌ای'];
+  const pick=(arr)=>shuffle? arr[Math.floor(Math.random()*arr.length)] : arr[0];
+  const fill=t=>t.replace(/\{n\}/g,n).replace(/\{f\}/g,f);
+  let out=[];
+  if(bioLang==='فارسی') out=st.fa.map(fill);
+  else if(bioLang==='انگلیسی') out=st.en.map(fill);
+  else out=[...st.fa.map(fill),...st.en.map(fill)];
+  $('#bOut').innerHTML = out.map((t,i)=>
+    `<div class="panel" style="margin-top:9px;animation:pop .35s var(--e) both">
+      <div class="out" style="margin:0">${t.replace(/</g,'&lt;')}</div>
+      <button class="ghost mini" style="margin-top:8px" data-bio="${i}">📋 کپی</button>
+    </div>`).join('');
+  $$('[data-bio]').forEach(b=>b.onclick=()=>copy(out[+b.dataset.bio]));
+}
+
+/* ---------- یوزرنیم‌ساز ---------- */
+const TR={'ا':'a','آ':'a','ب':'b','پ':'p','ت':'t','ث':'s','ج':'j','چ':'ch','ح':'h','خ':'kh',
+ 'د':'d','ذ':'z','ر':'r','ز':'z','ژ':'zh','س':'s','ش':'sh','ص':'s','ض':'z','ط':'t','ظ':'z',
+ 'ع':'a','غ':'gh','ف':'f','ق':'gh','ک':'k','گ':'g','ل':'l','م':'m','ن':'n','و':'v','ه':'h','ی':'y',' ':'','ئ':'y','ؤ':'v'};
+function translit(t){
+  return t.trim().replace(/\s+/g,' ').split('').map(c=>TR[c]!==undefined?TR[c]:c).join('')
+   .replace(/[^a-zA-Z0-9]/g,'').toLowerCase();
+}
+const U_STYLES=['کلاسیک','لوکس','گیمر','کوتاه','حرفه‌ای','فانتزی'];
+const U_GEN={
+ 'کلاسیک':b=>[b, b+'_official', b+'_1', b+'_real', b+'_ir', 'real_'+b, b+'_hub', b+'_2025'],
+ 'لوکس':b=>[b+'x', 'the_'+b, b+'.vip', b+'_prime', 'iam_'+b, b+'official', b+'_elite', b+'_luxe'],
+ 'گیمر':b=>['xX'+b+'Xx', b+'_pro', b+'_god', b+'gaming', b+'_gg', b+'_sniper', b+'x_'+b, b+'_win'],
+ 'کوتاه':b=>[b.slice(0,5), b.slice(0,4)+'x', 'x'+b.slice(0,4), b.slice(0,3)+'_'+b.slice(0,2), b.slice(0,6), 'i'+b.slice(0,4), b.slice(0,4)+'y','_'+b.slice(0,5)],
+ 'حرفه‌ای':b=>[b+'_co', b+'_hq', b+'_team', 'get_'+b, b+'_lab', b+'_works', b+'_studio', 'official_'+b],
+ 'فانتزی':b=>[b+'_nova', 'mystic_'+b, b+'_legend', b+'_wizard', 'astro_'+b, b+'_phoenix', b+'_dream', 'king_'+b],
+};
+let uStyle='کلاسیک';
+const uValid=u=>/^[a-z][a-z0-9_]{4,31}$/.test(u);
+function initUsername(){
+  $('#uStyles').innerHTML=U_STYLES.map(x=>`<span class="chip ${x===uStyle?'on':''}" data-u="${x}">${x}</span>`).join('');
+  $$('[data-u]').forEach(c=>c.onclick=()=>{
+    uStyle=c.dataset.u;
+    $$('[data-u]').forEach(o=>o.classList.remove('on')); c.classList.add('on'); buzz(); renderUser();
+  });
+  $('#uGo').onclick=()=>{renderUser();buzz();};
+  $('#uName').oninput=()=>{};
+  renderUser();
+}
+function renderUser(){
+  const raw=($('#uName').value||'').trim();
+  const base=translit(raw)||'astra';
+  const list=[...new Set((U_GEN[uStyle]||U_GEN['کلاسیک'])(base))].filter(uValid).slice(0,8);
+  if(!list.length){ $('#uOut').innerHTML='<div class="empty">چیزی ساخته نشد — نام دیگری امتحان کن</div>'; return; }
+  $('#uOut').innerHTML=list.map((u,i)=>
+    `<div class="kv"><span style="direction:ltr">@${u}</span>
+      <span><button class="ghost mini" data-un="${u}">کپی</button>
+      <button class="ghost mini" data-ut="${u}">بررسی ↗</button></span></div>`).join('');
+  $$('[data-un]').forEach(b=>b.onclick=()=>copy('@'+b.dataset.un));
+  $$('[data-ut]').forEach(b=>b.onclick=()=>{
+    const url='https://t.me/'+b.dataset.ut;
+    try{ tg&&tg.openLink ? tg.openLink(url) : window.open(url,'_blank'); }
+    catch(e){ window.open(url,'_blank'); }
+  });
+}
+
+/* ---------- فونت اسم (۲۶ استایل) ---------- */
+const NAME_STYLES=[
+ ['بولد', s=>s.replace(/[A-Za-z0-9]/g,c=>{const i=c.charCodeAt(0);
+   if(c>='A'&&c<='Z')return String.fromCodePoint(0x1D400+i-65);
+   if(c>='a'&&c<='z')return String.fromCodePoint(0x1D41A+i-97);
+   return String.fromCodePoint(0x1D7CE+ +c);})],
+ ['ایتالیک', s=>s.replace(/[A-Za-z]/g,c=>{const i=c.charCodeAt(0);
+   return c>='A'&&c<='Z'?String.fromCodePoint(0x1D434+i-65):String.fromCodePoint(0x1D44E+i-97)})],
+ ['بولد ایتالیک', s=>s.replace(/[A-Za-z]/g,c=>{const i=c.charCodeAt(0);
+   return c>='A'&&c<='Z'?String.fromCodePoint(0x1D468+i-65):String.fromCodePoint(0x1D482+i-97)})],
+ ['دست‌نویس', s=>s.replace(/[A-Za-z]/g,c=>{const i=c.charCodeAt(0);
+   return c>='A'&&c<='Z'?String.fromCodePoint(0x1D49C+i-65):String.fromCodePoint(0x1D4B6+i-97)})],
+ ['دست‌نویس پررنگ', s=>s.replace(/[A-Za-z]/g,c=>{const i=c.charCodeAt(0);
+   return c>='A'&&c<='Z'?String.fromCodePoint(0x1D4D0+i-65):String.fromCodePoint(0x1D4EA+i-97)})],
+ ['شکسته (Fraktur)', s=>s.replace(/[A-Za-z]/g,c=>{const i=c.charCodeAt(0);
+   return c>='A'&&c<='Z'?String.fromCodePoint(0x1D504+i-65):String.fromCodePoint(0x1D51E+i-97)})],
+ ['دابل‌استروک', s=>s.replace(/[A-Za-z0-9]/g,c=>{const i=c.charCodeAt(0);
+   if(c>='A'&&c<='Z')return String.fromCodePoint(0x1D538+i-65);
+   if(c>='a'&&c<='z')return String.fromCodePoint(0x1D552+i-97);
+   return String.fromCodePoint(0x1D7D8+ +c);})],
+ ['مونو‌اسپیس', s=>s.replace(/[A-Za-z0-9]/g,c=>{const i=c.charCodeAt(0);
+   if(c>='A'&&c<='Z')return String.fromCodePoint(0x1D670+i-65);
+   if(c>='a'&&c<='z')return String.fromCodePoint(0x1D68A+i-97);
+   return String.fromCodePoint(0x1D7F6+ +c);})],
+ ['حبابی', s=>s.replace(/[A-Za-z0-9]/g,c=>{
+   if(c>='A'&&c<='Z')return String.fromCodePoint(0x24B6+c.charCodeAt(0)-65);
+   if(c>='a'&&c<='z')return String.fromCodePoint(0x24D0+c.charCodeAt(0)-97);
+   return c==='0'?'⓪':String.fromCodePoint(0x2460+ +c-1)})],
+ ['مربعی', s=>s.replace(/[A-Za-z]/g,c=>{const i=c.charCodeAt(0);
+   return c>='A'&&c<='Z'?String.fromCodePoint(0x1F130+i-65):String.fromCodePoint(0x1F130+i-97)})],
+ ['حروف کوچک (Small Caps)', s=>s.replace(/[a-z]/g,c=>({a:'ᴀ',b:'ʙ',c:'ᴄ',d:'ᴅ',e:'ᴇ',f:'ꜰ',g:'ɢ',h:'ʜ',
+   i:'ɪ',j:'ᴊ',k:'ᴋ',l:'ʟ',m:'ᴍ',n:'ɴ',o:'ᴏ',p:'ᴘ',q:'Q',r:'ʀ',s:'ꜱ',t:'ᴛ',u:'ᴜ',v:'ᴠ',w:'ᴡ',
+   x:'x',y:'ʏ',z:'ᴢ'}[c]||c))],
+ ['ویپورویو', s=>s.split('').join(' ')],
+ ['زیرخط‌دار ✅', s=>s.replace(/./g,c=>c+'̲')],
+ ['خط‌خورده ✅', s=>s.replace(/./g,c=>c+'̶')],
+ ['بالا‌نویس ✅', s=>s.replace(/./g,c=>c+'͆')],
+ ['جواهری ✅', s=>'✨'+s.split('').join('✨')+'✨'],
+ ['قاب طلایی ✅', s=>'꧁'+s+'꧂'],
+ ['قاب ژاپنی ✅', s=>'『'+s+'』'],
+ ['قاب چینی ✅', s=>'【'+s+'】'],
+ ['قلاب ✅', s=>'❰'+s+'❱'],
+ ['ستاره ✅', s=>'✦'+s+'✦'],
+ ['تاج ✅', s=>'♛ '+s+' ♛'],
+ ['الماس ✅', s=>'◈'+s+'◈'],
+ ['سایه ✅', s=>'░'+s+'░'],
+ ['ضربدر ✅', s=>'乂'+s+'乂'],
+ ['پرانتز لوکس ✅', s=>'「'+s+'」'],
+ ['گیمر ✅', s=>'『'+s+'』ッ'],
+];
+function initNameFont(){
+  const render=()=>{
+    const t=($('#nfIn').value||'').trim();
+    $('#nfOut').innerHTML = t ? NAME_STYLES.map(([n,fn],i)=>
+      `<div class="kv" style="cursor:pointer" data-nf="${i}"><span>${n}</span>
+        <b style="font-size:12.5px;text-align:left;direction:rtl">${fn(t).replace(/</g,'&lt;')}</b></div>`).join('')
+      : '<div class="empty">اسم خود را بنویس تا ۲۶ استایل ببینی ✨</div>';
+    $$('[data-nf]').forEach(el=>el.onclick=()=>{
+      copy(NAME_STYLES[+el.dataset.nf][1](t)); buzz();
+    });
+  };
+  $('#nfIn').oninput=render;
+  render();
 }
 
 /* ---------- فونت / ماشین‌حساب / تبدیل ---------- */

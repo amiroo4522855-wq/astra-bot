@@ -149,9 +149,21 @@ def send_track(ctx: Context, url: str, title: str, uploader: str = "", index: in
         return
     ctx.send("⏳ دارم دانلود می‌کنم… چند لحظه صبر کن 🎵")
     quality = user_quality(ctx)
-    path = media.download_audio(url, bitrate=quality)
+    # نوع خروجی: صدا (پیش‌فرض) یا ویدیو — از مینی‌اپ هم قابل انتخاب است
+    kind = ctx.db.get_setting(f"music_kind:{ctx.sender_id}", "") or "audio"
+    if kind == "video":
+        height = 1080 if ctx.is_vip else 720
+        path = media.download_video(url, max_height=height)
+        file_type = "Video"
+        caption = (f"🎬 {title}\n👤 {uploader}\n📺 کیفیت: {height}p\n"
+                   f"✨ آسترا")
+    else:
+        path = media.download_audio(url, bitrate=quality)
+        file_type = "Music"
+        caption = (f"🎵 {title}\n👤 {uploader}\n🎚 کیفیت: {quality} kbps\n"
+                   f"✨ آسترا")
     try:
-        file_id = ctx.client.upload_path(path, "Music")
+        file_id = ctx.client.upload_path(path, file_type)
         keyboard = (
             kb()
             .row(btn("🎵 آهنگ مشابه", f"music:similar:{index}"),
@@ -162,9 +174,8 @@ def send_track(ctx: Context, url: str, title: str, uploader: str = "", index: in
             .nav()
         )
         ctx.client.send_file(ctx.chat_id, file_id,
-                             caption=f"🎵 {title}\n👤 {uploader}\n🎚 کیفیت: {quality} kbps\n"
-                                     f"✨ آسترا",
-                             file_type="Music", inline_keypad=keyboard.build())
+                             caption=caption,
+                             file_type=file_type, inline_keypad=keyboard.build())
     finally:
         media.cleanup(path)
 

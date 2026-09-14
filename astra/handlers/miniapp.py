@@ -168,7 +168,18 @@ def _ai_image(ctx: Context, data: dict) -> None:
 
 
 def _music(ctx: Context, data: dict) -> None:
+    """جستجوی آهنگ با کیفیت و نوع خروجی انتخاب‌شده در مینی‌اپ."""
     from .music import do_music_search
+
+    quality = str(data.get("quality") or "").strip()
+    if quality in ("128", "192", "320"):
+        if quality == "320" and not ctx.is_vip:
+            quality = "192"            # ۳۲۰ فقط برای کاربران ویژه
+        ctx.db.set_setting(f"quality:{ctx.sender_id}", quality)
+    kind = str(data.get("kind") or "").strip()
+    if kind in ("audio", "video"):
+        ctx.db.set_setting(f"music_kind:{ctx.sender_id}", kind)
+
     ctx.update.text = str(data.get("query") or data.get("text") or "")
     do_music_search(ctx)
 
