@@ -49,6 +49,9 @@ class AstraBot:
                 except Exception:
                     pass
             ctx = Context(self.client, self.db, update)
+            preview = update.button_id or (update.text or "(رسانه)").replace("\n", " ")[:48]
+            print(f"📩 {update.chat_type} | {str(update.sender_id)[:8]}… | {preview}",
+                  flush=True)
             handle(ctx)
             self.processed += 1
         except Exception:                                   # هیچ آپدیتی نباید ربات را ببندد
