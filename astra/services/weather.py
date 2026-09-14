@@ -1,10 +1,15 @@
 """آب‌وهوا با استفاده از Open-Meteo (بدون نیاز به کلید)."""
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from pathlib import Path
 
 from ..core.utils import en_to_fa, money
 from .http import ServiceError, get_json
+
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+CITIES_FILE = DATA_DIR / "cities.json"
 
 GEO_URL = "https://geocoding-api.open-meteo.com/v1/search"
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
@@ -59,11 +64,69 @@ def describe(code: int) -> tuple[str, str]:
     return WMO.get(int(code), ("نامشخص", "🌡"))
 
 
+def _normalize(name: str) -> str:
+    """نرمال‌سازی نام شهر برای تطبیق بهتر."""
+    return (name or "").replace("\u200c", "").replace(" ", "").strip().rstrip("ه").lower()
+
+
+def load_cities() -> list[Place]:
+    """خواندن فهرست شهرهای ایران از فایل محلی (۱۶۳ شهر، ۳۰ استان)."""
+    if not CITIES_FILE.exists():
+        return []
+    try:
+        data = json.loads(CITIES_FILE.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return []
+    return [
+        Place(name=item.get("name", ""), lat=float(item.get("lat", 0)),
+              lon=float(item.get("lon", 0)), country="IR",
+              admin=item.get("province", ""))
+        for item in data.get("cities", [])
+        if item.get("lat") is not None
+    ]
+
+
+_CITIES_CACHE: list[Place] | None = None
+
+
+def cities() -> list[Place]:
+    """فهرست شهرها (یک بار خوانده و کش می‌شود)."""
+    global _CITIES_CACHE
+    if _CITIES_CACHE is None:
+        _CITIES_CACHE = load_cities()
+    return _CITIES_CACHE
+
+
+def provinces() -> list[str]:
+    return sorted({place.admin for place in cities() if place.admin})
+
+
+def cities_of(province: str) -> list[Place]:
+    return [p for p in cities() if p.admin == province]
+
+
+def find_local(city: str) -> Place | None:
+    """جستجوی شهر در فهرست محلی (سریع و بدون اینترنت)."""
+    target = _normalize(city)
+    if not target:
+        return None
+    for place in cities():
+        if _normalize(place.name) == target:
+            return place
+    for place in cities():                       # تطبیق جزئی (مثل «بندر» → بندرعباس)
+        if target and target in _normalize(place.name):
+            return place
+    return None
+
+
 def geocode(city: str) -> Place | None:
-    """پیدا کردن مختصات شهر (فارسی یا انگلیسی)."""
+    """پیدا کردن مختصات شهر: اول فهرست محلی، بعد سرویس آنلاین."""
     city = (city or "").strip()
     if not city:
         return None
+    local = find_local(city)
+    if local:
+        return local
     query = CITY_ALIASES.get(city, city)
     for name in (query, city):
         try:

@@ -281,3 +281,41 @@ class TestDatabase(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestCities(unittest.TestCase):
+    """فهرست شهرهای ایران (داده‌ی محلی برای آب‌وهوا)."""
+
+    def test_cities_loaded(self):
+        from astra.services import weather
+        cities = weather.cities()
+        self.assertGreaterEqual(len(cities), 150)
+        self.assertGreaterEqual(len(weather.provinces()), 25)
+
+    def test_find_local_exact(self):
+        from astra.services import weather
+        place = weather.find_local("کرمانشاه")
+        self.assertIsNotNone(place)
+        self.assertEqual(place.name, "کرمانشاه")
+        self.assertEqual(place.country, "IR")
+
+    def test_find_local_partial(self):
+        from astra.services import weather
+        place = weather.find_local("بندر")
+        self.assertIsNotNone(place)
+        self.assertIn("بندر", place.name)
+
+    def test_geocode_uses_local_first(self):
+        """بدون اینترنت هم باید شهرهای ایران پیدا شوند."""
+        from astra.services import weather
+        real_get, weather.get_json = weather.get_json, None   # قطع دسترسی شبکه
+        try:
+            place = weather.geocode("شیراز")
+            self.assertIsNotNone(place)
+            self.assertEqual(place.name, "شیراز")
+        finally:
+            weather.get_json = real_get
+
+    def test_unknown_city(self):
+        from astra.services import weather
+        self.assertIsNone(weather.find_local("شهرخیالینداره"))
