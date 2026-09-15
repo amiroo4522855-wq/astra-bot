@@ -2251,6 +2251,21 @@ if(tg){tg.ready();try{tg.expand()}catch(e){}
   if(u&&u.is_premium){const b=$('#vipBadge');b.className='badge gold';b.textContent='⭐️ کاربر پریمیوم';}}
 themeInit();
 show('home');
+// جابه‌جایی بین تب‌ها با کشیدنِ انگشت
+(function swipeTabs(){
+  let x0=null,y0=null;
+  addEventListener('touchstart',e=>{ if(e.touches.length!==1) return;
+    x0=e.touches[0].clientX; y0=e.touches[0].clientY; },{passive:true});
+  addEventListener('touchend',e=>{
+    if(x0===null||!e.changedTouches.length) return;
+    const dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0;
+    x0=null;
+    if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.6) return;
+    const cur=TABS.find(t=>!$('#page-'+t).classList.contains('hidden'))||'home';
+    const i=TABS.indexOf(cur)+(dx<0?1:-1);
+    if(i>=0&&i<TABS.length){ buzz(); show(TABS[i]); }
+  },{passive:true});
+})();
 addEventListener('resize',()=>show(TABS.find(t=>!$('#page-'+t).classList.contains('hidden'))||'home'));
 addEventListener('orientationchange',()=>setTimeout(()=>show('home'),220));
 
