@@ -662,3 +662,47 @@ class TestBrainPrecision(unittest.TestCase):
         from astra.services import brain
         result = brain.analyze("Albert Einstein")
         self.assertEqual(result["kind"], "wiki")
+
+
+class TestMeaningsAndRouting(unittest.TestCase):
+    """معنیِ واژه و مسیریابیِ درستِ ترجمه."""
+
+    def test_meaning_returns_persian_or_empty(self):
+        from astra.services import brain
+        result = brain.meaning("کتاب")
+        if result:                       # در صورت نبودِ اینترنت تست رد نمی‌شود
+            self.assertTrue(any("\u0600" <= c <= "\u06ff" for c in result))
+            self.assertNotIn("انگلیسی", result.split()[0])
+
+    def test_meaning_rejects_nonsense(self):
+        from astra.services import brain
+        self.assertEqual(brain.meaning(""), "")
+        self.assertEqual(brain.meaning("x"), "")
+
+    def test_translation_target_follows_the_text(self):
+        from astra.services import brain
+        result = brain.analyze("ترجمه کن good morning")
+        self.assertEqual(result["kind"], "translate")
+        self.assertEqual(result["slots"]["target"], "فارسی")
+
+    def test_explicit_translation_target_wins(self):
+        from astra.services import brain
+        result = brain.analyze("ترجمه کن به فرانسوی book")
+        self.assertEqual(result["kind"], "translate")
+        self.assertEqual(result["slots"]["target"], "فرانسوی")
+
+    def test_persian_meaning_is_definition_not_translation(self):
+        from astra.services import brain
+        result = brain.analyze("معنی مهربانی")
+        self.assertNotEqual(result["kind"], "translate")
+
+    def test_greeting_after_translate_keyword_is_translation(self):
+        from astra.services import brain
+        self.assertEqual(brain.analyze("ترجمه کن سلام")["kind"], "translate")
+
+    def test_advice_covers_many_topics(self):
+        from astra.services import brain
+        self.assertGreaterEqual(len(brain.ADVICE), 20)
+        for question in ("باتری گوشی زود خالی میشه", "گیاهام خشک شدن",
+                         "چطور خلاق‌تر باشم", "سفر ارزان"):
+            self.assertTrue(brain.advice(question), question)

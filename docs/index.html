@@ -1305,6 +1305,14 @@ async function brainAnswer(q){
     if(city){ try{ const w=await weatherText(city); if(w) return w; }catch(e){} }
     return '🏙 کدام شهر؟ بنویسید: «آب و هوا تهران» 🌤';
   }
+  // معنیِ واژه‌های کوتاه
+  const words=n.trim().split(/[\s\u200c]+/).filter(Boolean);
+  if(words.length<=2 && /[\u0600-\u06FF]/.test(n)){
+    const term=q.replace(/^(معنی|تعریف|یعنی)\s+/i,'').replace(/[؟?]/g,'').trim();
+    const m=await meaningOf(term);
+    if(m) return '🔎 '+term.slice(0,40)+'\n───────────────\n'+m
+      +'\n───────────────\nمنبع: ویکی‌داده';
+  }
   // دانشِ زنده: ویکی‌پدیا (برای هر پرسشِ دیگر)
   if(n.length>3){
     const w=await wikiAnswer(q);
@@ -1351,6 +1359,32 @@ function fitChat(){
 function chatToBottom(smooth){
   const log=$('#chLog'); if(!log) return;
   log.scrollTo({top:log.scrollHeight,behavior:smooth?'smooth':'auto'});
+}
+
+/* ---------- معنیِ کوتاهِ واژه (ویکی‌داده، زنده) ---------- */
+const MEAN_CACHE={};
+async function meaningOf(word){
+  const key=String(word||'').trim();
+  if(!key||key.length>40) return '';
+  if(key in MEAN_CACHE) return MEAN_CACHE[key];
+  let out='';
+  try{
+    const ctl=(typeof AbortController==='function')?new AbortController():null;
+    const timer=ctl?setTimeout(()=>ctl.abort(),6000):null;
+    const u='https://fa.wikipedia.org/w/api.php?action=query&prop=description&titles='
+      +encodeURIComponent(key)+'&format=json&origin=*';
+    const d=await fetch(u,{headers:{'Accept':'application/json',
+      'Api-User-Agent':'AstraBot/1.0 (https://t.me/Astra225bot)'},
+      signal:ctl?ctl.signal:undefined}).then(r=>r.json());
+    if(timer) clearTimeout(timer);
+    const pages=(d&&d.query&&d.query.pages)||{};
+    for(const k in pages){
+      const desc=(pages[k]||{}).description||'';
+      if(desc&&!pages[k].missing){ out=desc; break; }
+    }
+  }catch(e){ out=''; }
+  MEAN_CACHE[key]=out;
+  return out;
 }
 
 /* ---------- پاسخِ واقعی از ویکی‌پدیا (زنده) ---------- */
