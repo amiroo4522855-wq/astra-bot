@@ -1221,7 +1221,7 @@ async function weatherText(city){
   if(!c) return null;
   const d=await jgetSmart('https://api.open-meteo.com/v1/forecast?latitude='+c.lat+
     '&longitude='+c.lon+'&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=Asia/Tehran');
-  const cur=d.current||{}; const desc=(WX[cur.weather_code]||['نامعلوم'])[0];
+  const cur=d.current||{}; const desc=((WX[cur.weather_code]||['','نامعلوم'])[1]||'نامعلوم');
   return '🌤 '+c.name+' · '+c.province+'\n▫️ '+desc+' · دما '+fa(Math.round(cur.temperature_2m))+'°C\n▫️ رطوبت '+fa(cur.relative_humidity_2m)+'٪ · باد '+fa(Math.round(cur.wind_speed_10m))+' km/h';
 }
 async function priceText(){
@@ -1245,8 +1245,25 @@ async function wikiText(q){
     return '📚 '+hit.title+'\n'+t+'\nمنبع: ویکی‌پدیا';
   }catch(e){ return null; }
 }
+function chHas(text, word){
+  const w=chNorm(String(word||''));
+  if(!w) return false;
+  const tokens=chNorm(String(text||'')).split(/[\s\u200c]+/);
+  return tokens.some(t=>t===w || (w.length>=3 && t.startsWith(w)));
+}
+
 async function brainAnswer(q){
   const b=await loadBrain(); const n=chNorm(q);
+  if(/^(salam|hello|hi|hey)\b/.test(n) || /^(سلام|درود|صبح بخیر|عصر بخیر|شب بخیر)/.test(n.trim())){
+    const h=new Date().getHours();
+    const salute=(h<12)?'صبح‌تان به‌خیر 🌤':(h<18)?'عصرتان به‌خیر ☀️':(h<22)?'شب‌تان به‌خیر 🌇':'شب‌تان به‌خیر 🌙';
+    let name=''; try{ name=localStorage.getItem('name')||''; }catch(e){}
+    const tail=(b.replies&&b.replies.greet&&b.replies.greet[Math.floor(Math.random()*b.replies.greet.length)])
+      ||'خیلی خوش‌آمدید';
+    return '👋 '+salute+(name?' '+name+' عزیز':'')+' — '+tail
+      +'\n\nهرچه می‌خواهی بپرس؛ این‌ها هم از دستم برمی‌آید:\n'
+      +'🌤 آب‌وهوا · 💱 قیمت ارز و ارز دیجیتال\n🎮 دوز · 🎭 فال و جوک · 🔤 فونت‌ساز';
+  }
   const hit=(b.intents||[]).find(it=>(it.patterns||[]).some(p=>n.includes(p)));
   if(hit){
     if(hit.kind==='who') return b.about;
@@ -1271,17 +1288,23 @@ async function brainAnswer(q){
     });
     if(hits&&best) return '💡 '+best;
   }
-  // داده‌های واقعی
-  if(/ساعت|تاریخ|چه روزی|چندشنبه/.test(n))
+  // داده‌های واقعی (همیشه پیش از دانشِ عمومی)
+  if(chHas(n,'ساعت')||chHas(n,'تاریخ')||chHas(n,'چندشنبه')||chHas(n,'وقت'))
     return '🕓 '+jalaliNow()+'\n🇮🇷 تهران: '+new Date().toLocaleTimeString('fa-IR',{timeZone:'Asia/Tehran'});
-  if(/دلار|یورو|سکه|طلا|قیمت|نرخ|تتر|بیت/.test(n)){
+  if(chHas(n,'قیمت')||chHas(n,'نرخ')||chHas(n,'دلار')||chHas(n,'یورو')||chHas(n,'سکه')
+     ||chHas(n,'طلا')||chHas(n,'تتر')||chHas(n,'بیت‌کوین')||chHas(n,'بیت')){
     const p=await priceText(); if(p) return p; }
-  if(/آب ?و ?هوا|هوا|دما|باران/.test(n)){
+  if(chHas(n,'هوا')||chHas(n,'دما')||chHas(n,'باران')){
     let city='';
     try{ const list=await loadCities();
-      city=(list.find(c=>n.includes(chNorm(c.name)))||{}).name||''; }catch(e){}
+      city=(list.find(c=>chHas(n,chNorm(c.name)))||{}).name||''; }catch(e){}
     if(city){ try{ const w=await weatherText(city); if(w) return w; }catch(e){} }
     return '🏙 کدام شهر؟ بنویسید: «آب و هوا تهران» 🌤';
+  }
+  // دانشِ زنده: ویکی‌پدیا (برای هر پرسشِ دیگر)
+  if(n.length>3){
+    const w=await wikiAnswer(q);
+    if(w) return w;
   }
   const expr=q.replace(/[۰-۹]/g,d=>'0123456789'['۰۱۲۳۴۵۶۷۸۹'.indexOf(d)])
     .replace(/\s/g,'')
@@ -1324,6 +1347,59 @@ function fitChat(){
 function chatToBottom(smooth){
   const log=$('#chLog'); if(!log) return;
   log.scrollTo({top:log.scrollHeight,behavior:smooth?'smooth':'auto'});
+}
+
+/* ---------- پاسخِ واقعی از ویکی‌پدیا (زنده) ---------- */
+const WIKI_CACHE={};
+async function wikiFetch(lang, title, ctl){
+  const host=lang+'.wikipedia.org';
+  const u='https://'+host+'/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1'
+    +'&redirects=1&titles='+encodeURIComponent(title)+'&format=json&origin=*';
+  const d=await fetch(u,{headers:{'Accept':'application/json',
+    'Api-User-Agent':'AstraBot/1.0 (https://t.me/Astra225bot)'},
+    signal:ctl?ctl.signal:undefined}).then(r=>r.json());
+  const pages=(d&&d.query&&d.query.pages)||{};
+  const page=Object.values(pages)[0]||{};
+  return (page.extract||'').trim();
+}
+
+async function wikiAnswer(query){
+  const key=query.trim();
+  if(key in WIKI_CACHE) return WIKI_CACHE[key];
+  let out='';
+  try{
+    const norm=key.replace(/[\u064B-\u0652]/g,'').replace(/[؟?]/g,'').trim();
+    const words=norm.split(/[\s\u200c]+/).filter(w=>w.length>=4 &&
+      !['چطور','چگونه','چیست','کیست','درباره','توضیح','معنی','بگو','لطفا'].includes(w));
+    const ctl=(typeof AbortController==='function')?new AbortController():null;
+    const timer=ctl?setTimeout(()=>ctl.abort(),7000):null;
+    const head={headers:{'Accept':'application/json',
+      'Api-User-Agent':'AstraBot/1.0 (https://t.me/Astra225bot)'},
+      signal:ctl?ctl.signal:undefined};
+    const langs=/[\u0600-\u06FF]/.test(norm)?['fa','en']:['en','fa'];
+    for(const lang of langs){
+      const s1=await fetch('https://'+lang+'.wikipedia.org/w/api.php?action=query&list=search'
+        +'&srsearch='+encodeURIComponent(norm)+'&format=json&srlimit=3&origin=*',head)
+        .then(r=>r.json()).catch(()=>null);
+      const hits=(s1&&s1.query&&s1.query.search)||[];
+      const title=hits.find(h=>{
+        const t=String(h.title||'').replace(/[\u064B-\u0652]/g,'').toLowerCase();
+        return !words.length || words.some(w=>t.includes(w.toLowerCase()));
+      });
+      if(!title) continue;
+      const txt=await wikiFetch(lang,title.title,ctl).catch(()=>'');
+      if(txt.length>40){
+        const body=txt.split(/(?<=[.!؟])\s+/).slice(0,3).join(' ');
+        out='📚 '+title.title+'\n───────────────\n'+body.slice(0,560)
+            +(body.length>560?' …':'')+'\n───────────────\nمنبع: ویکی‌پدیای '
+            +(lang==='fa'?'فارسی':'انگلیسی');
+        break;
+      }
+    }
+    if(timer) clearTimeout(timer);
+  }catch(e){ out=''; }
+  WIKI_CACHE[key]=out;
+  return out;
 }
 
 async function initBrain(){
