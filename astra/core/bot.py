@@ -156,11 +156,13 @@ class AstraBot:
                 {"command": "start", "description": "🏠 شروع و منوی اصلی"},
                 {"command": "app", "description": "✨ باز کردن مینی‌اپ آسترا"},
                 {"command": "help", "description": "ℹ️ راهنما و پشتیبانی"},
-                {"command": "vip", "description": "💎 عضویت ویژه"},
-                {"command": "admin", "description": "👑 پنل مدیریت"},
-                {"command": "dooz", "description": "❌⭕️ بازی دوز"},
-                {"command": "anon", "description": "🕵️ چت ناشناس"},
+                {"command": "chat", "description": "💬 چت هوشمند — هرچه می‌خواهی بپرس"},
+                {"command": "dooz", "description": "❌⭕️ بازی دوز با آسترا"},
+                {"command": "anon", "description": "🕵️ چت ناشناس امن"},
                 {"command": "stop", "description": "🚪 بستن چت ناشناس"},
+                {"command": "vip", "description": "💎 عضویت ویژه"},
+                {"command": "me", "description": "👤 حساب و امتیازهای من"},
+                {"command": "panel", "description": "👑 پنل مدیریت"},
             ])
         except RubikaError:
             pass
