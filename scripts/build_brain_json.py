@@ -33,6 +33,8 @@ data = {
     "intents": [{"kind": kind, "patterns": sorted(set(p.lower() for p in patterns),
                                                   key=len, reverse=True)}
                 for kind, patterns in INTENTS],
+    "advice": [{"keywords": [brain.normalize(k) for k in keywords], "text": text}
+               for keywords, text in brain.ADVICE],
     "replies": {
         "greet": list(brain.GREET_REPLIES),
         "mood": list(brain.MOOD_REPLIES),

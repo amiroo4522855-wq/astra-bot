@@ -121,12 +121,7 @@ def _brain_answer(ctx: Context, text: str) -> str:
     if kind == "poem":
         return _poem_text()
     if kind == "wiki":
-        summary = brain.wiki(slots.get("query", text))
-        if summary:
-            return (f"📚 {slots.get('query', '').strip()[:60]}\n{SEPARATOR}\n{summary}\n"
-                    f"{SEPARATOR}\n"
-                    + tip("منبع: ویکی‌پدیا · اگر دقیق‌تر می‌خواهی، سوالت را مشخص‌تر بپرس."))
-        return _fallback(text)
+        return _knowledge(ctx, slots.get("query", text))
     if kind == "calc":
         try:
             return calculator.render(slots.get("expr", ""))
@@ -166,7 +161,36 @@ def _brain_answer(ctx: Context, text: str) -> str:
         return _price_answer(ctx, slots.get("query", text))
     if kind == "time":
         return clock.now_report()
-    return _fallback(text)
+    return _knowledge(ctx, text)
+
+
+def _latin_ratio(text: str) -> float:
+    letters = [c for c in text if c.isalpha()]
+    if not letters:
+        return 0.0
+    latin = sum(1 for c in letters if c.isascii())
+    return latin / len(letters)
+
+
+def _knowledge(ctx: Context, query: str) -> str:
+    """تلاشِ پشت‌سرهم برای یافتن پاسخِ واقعی: توصیه‌ها ← ویکی‌پدیا ← DuckDuckGo."""
+    tip_text = brain.advice(query)
+    if tip_text:
+        return f"💡 {query.strip()[:60]}\n{SEPARATOR}\n{tip_text}"
+
+    summary = brain.wiki(query)
+    if summary:
+        note = ("منبع: ویکی‌پدیای انگلیسی (ترجمه نشده)" if _latin_ratio(summary) > 0.6
+                else "منبع: ویکی‌پدیا")
+        return (f"📚 {query.strip()[:60]}\n{SEPARATOR}\n{summary}\n{SEPARATOR}\n"
+                + tip(note + " · برای جزئیات بیشتر، دقیق‌تر بپرسید."))
+
+    english = brain.duckduckgo(query)
+    if english:
+        return (f"📘 {query.strip()[:60]}\n{SEPARATOR}\n{english}\n{SEPARATOR}\n"
+                + tip("منبع: DuckDuckGo (انگلیسی) · برای فارسی، سوالتان را ساده‌تر بپرسید."))
+
+    return _fallback(query)
 
 
 def _fallback(text: str) -> str:

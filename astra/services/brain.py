@@ -145,6 +145,8 @@ def wiki(query: str, lang: str = "fa", limit: int = MAX_WIKI_CHARS) -> str:
             if not hits:
                 continue
             title = hits[0].get("title", "")
+            if not _relevant(query, title):
+                continue
             data = request(
                 f"https://{code}.wikipedia.org/api/rest_v1/page/summary/{title}",
                 headers=UA, timeout=12,
@@ -155,6 +157,21 @@ def wiki(query: str, lang: str = "fa", limit: int = MAX_WIKI_CHARS) -> str:
         except Exception:
             continue
     return ""
+
+
+STOP_QUERY = ("چطور", "چگونه", "چیست", "کیست", "چه", "چیه", "بگو", "لطفا",
+              "لطفاً", "راجع", "درباره", "توضیح", "معنی", "یک", "یه", "از",
+              "برای", "را", "با", "های", "ترین", "کند", "کنم", "بیشتر")
+
+
+def _relevant(query: str, title: str) -> bool:
+    """آیا نتیجه‌ی جستجو به پرسش ربط دارد؟ (جلوگیری از پاسخِ بی‌ربط)"""
+    words = [w for w in re.split(r"[\s\u200c]+", normalize(query))
+             if len(w) >= 4 and w not in STOP_QUERY]
+    if not words:
+        return True
+    clean_title = normalize(title)
+    return any(word in clean_title or clean_title in word for word in words)
 
 
 def _tidy(text: str, limit: int) -> str:
@@ -241,9 +258,36 @@ def _city_in(text: str) -> str:
     return best
 
 
+WORD_EDGE = "؀-ۿ\u200c\u200dA-Za-z"
+
+
+def _has_word(text: str, word: str) -> bool:
+    """تطبیقِ دقیقِ واژه (نه بخشی از یک واژه‌ی دیگر).
+
+    مثال: «اصطلاح» نباید به‌خاطر «طلا» قیمت تلقی شود.
+    """
+    word = normalize(word).lower()
+    if not word:
+        return False
+    try:
+        return re.search(rf"(?<![{WORD_EDGE}]){re.escape(word)}(?![{WORD_EDGE}])",
+                         text or "") is not None
+    except re.error:
+        return word in (text or "")
+
+
+def _has_prefix(text: str, word: str) -> bool:
+    """تطبیقِ واژه‌های مرکب: «بیت» در «بیتکوین» هم پذیرفته می‌شود."""
+    word = normalize(word).lower()
+    if len(word) < 3:
+        return False
+    return any(token.startswith(word) for token in re.split(r"[\s\u200c]+", text or "")
+               if token)
+
+
 def _match_any(text: str, words) -> bool:
     clean = normalize(text).lower()
-    return any(word in clean for word in words)
+    return any(_has_word(clean, word) for word in words)
 
 
 def analyze(text: str, memory: dict | None = None) -> dict:
@@ -278,6 +322,8 @@ def analyze(text: str, memory: dict | None = None) -> dict:
     if _match_any(low, GREETINGS):
         name = memory.get("name", "")
         reply = _pick(GREET_REPLIES)
+        if random.random() < 0.5:
+            reply = f"{greeting_for()} {reply}"
         return {"kind": "text", "text": f"{name + ' عزیز، ' if name else ''}{reply}",
                 "slots": {}, "remember": {}, "suggest": ["قیمت دلار", "آب و هوا تهران"]}
     if _match_any(low, MOODS):
@@ -358,10 +404,10 @@ def analyze(text: str, memory: dict | None = None) -> dict:
                          ("بیت", 3), ("تتر", 3), ("ارز", 2), ("کریپتو", 3),
                          ("لیر", 2), ("یوان", 2), ("تومان", 1), ("چنده", 1),
                          ("چقدره", 1)):
-        if word in low:
+        if _has_word(low, word) or word in ("بیت", "کریپتو", "تتر") and _has_prefix(low, word):
             price_score += weight
-    time_score = sum(2 for word in ("ساعت", "تاریخ", "چندشنبه", "وقت", "روز")
-                     if word in low)
+    time_score = sum(2 for word in ("ساعت", "تاریخ", "چندشنبه", "وقت")
+                     if _has_word(low, word))
     if price_score >= 2 and price_score >= time_score:
         return {"kind": "price", "text": "", "slots": {"query": raw[:80]},
                 "remember": {}, "suggest": ["قیمت سکه", "قیمت بیت‌کوین"]}
@@ -369,7 +415,7 @@ def analyze(text: str, memory: dict | None = None) -> dict:
         return {"kind": "time", "text": "", "slots": {}, "remember": {}, "suggest": []}
 
     # --- دانش (ویکی‌پدیا) ---
-    if QUESTION_RE.search(clean) or len(clean.split()) > 2:
+    if QUESTION_RE.search(clean) or len(clean.split()) >= 2:
         topic = _topic_from_question(clean)
         return {"kind": "wiki", "text": "", "slots": {"query": topic or raw[:80]},
                 "remember": {}, "suggest": []}
@@ -419,6 +465,123 @@ def _topic_from_question(clean: str) -> str:
                  "بگو کی", "معنی", "لطفا", "لطفاً", "بگو", "چیه", "چی", "؟", "?"):
         topic = topic.replace(word, " ")
     return re.sub(r"\s+", " ", topic).strip()[:60]
+
+
+@lru_cache(maxsize=200)
+def duckduckgo(query: str) -> str:
+    """خلاصه‌ی دانش‌نامه‌ای از DuckDuckGo (برای موضوعات انگلیسی)."""
+    try:
+        data = request("https://api.duckduckgo.com/",
+                       params={"q": query[:120], "format": "json", "no_html": "1",
+                               "skip_disambig": "1"},
+                       headers=UA, timeout=12)
+        text = ((data or {}).get("AbstractText") or "").strip()
+        return _tidy(text, 480) if text else ""
+    except Exception:
+        return ""
+
+
+# پاسخ‌های آماده برای پرسش‌های پرتکرار (محتوای واقعی و کاربردی)
+ADVICE: tuple[tuple[tuple[str, ...], str], ...] = (
+    (("تمرکز", "حواس‌پرت", "پرتی حواس"),
+     "برای تمرکز بیشتر: ۱) موبایل را از دسترس خارج کن 📵\n"
+     "۲) از روش «پومودورو» استفاده کن: ۲۵ دقیقه کار، ۵ دقیقه استراحت\n"
+     "۳) هر بار فقط یک کار را انجام بده؛ چندوظیفگی تمرکز را می‌کشد\n"
+     "۴) کار سخت را در ساعتی انجام بده که انرژی‌ات بیشتر است."),
+    (("خواب", "بی‌خوابی", "نمی‌خوابم", "زود بیدار"),
+     "برای خواب بهتر: ۱) ساعت خواب و بیداری را ثابت نگه دار ⏰\n"
+     "۲) تا یک ساعت قبل از خواب صفحه‌نمایش را کنار بگذار\n"
+     "۳) کافئین را بعد از عصر حذف کن ☕️\n"
+     "۴) اتاق را خنک و تاریک کن و اگر ۲۰ دقیقه نخوابیدی، برخیز و کاری آرام انجام بده."),
+    (("انگیزه", "بی‌حوصله", "ناامید", "تنبلی"),
+     "انگیزه معمولاً بعد از شروع می‌آید، نه قبل از آن 🌱\n"
+     "• هدف را به قدم‌های خیلی کوچک تقسیم کن (۵ دقیقه)\n"
+     "• پیشرفت را بنویس تا ببینی در حال حرکتی\n"
+     "• خودت را با دیروزش مقایسه کن، نه با دیگران\n"
+     "• بعد از هر قدمِ کوچک، به خودت پاداش بده."),
+    (("مدیریت زمان", "وقت کم", "برنامه‌ریزی"),
+     "مدیریت زمان یعنی مدیریتِ توجه ⏳\n"
+     "• هر شب ۳ کارِ مهمِ فردا را بنویس\n"
+     "• کارهای مشابه را پشت‌سرهم انجام بده\n"
+     "• برای کارِ عمیق، زمانِ بدون نوتیفیکیشن بگذار\n"
+     "• به «نه گفتن» عادت کن؛ وقتت محدود است."),
+    (("یادگیری زبان", "زبان انگلیسی", "زبان یاد"),
+     "یادگیری زبان با تداوم است، نه شدت 🗣\n"
+     "• روزانه ۱۵ دقیقه گوش بده (پادکست/فیلم با زیرنویس)\n"
+     "• ۱۰ لغتِ پرتکرار را در جمله تمرین کن\n"
+     "• هر روز ۲ دقیقه با خودت بلند صحبت کن\n"
+     "• اشتباه کردن بخشی از مسیر است؛ ادامه بده."),
+    (("استرس", "اضطراب", "نگران", "آرامش"),
+     "برای کاهش استرس: ۱) تنفس ۴-۷-۸ (دم ۴، حبس ۷، بازدم ۸ ثانیه) 🌬\n"
+     "۲) نگرانی‌ها را بنویس تا از ذهن خارج شوند\n"
+     "۳) پیاده‌رویِ ۱۰ دقیقه‌ای معجزه می‌کند\n"
+     "۴) اگر استرس ماندگار شد، کمک گرفتن از متخصص بهترین کار است."),
+    (("ورزش", "تناسب", "لاغر", "چاق"),
+     "اصلِ طلایی: تداوم از شدت مهم‌تر است 🏃\n"
+     "• هفته‌ای ۳ بار، هر بار ۳۰ دقیقه فعالیت\n"
+     "• ترکیبِ هوازی + قدرتی بهترین نتیجه را دارد\n"
+     "• خواب و تغذیه نیمی از مسیرند\n"
+     "• قبل از هر برنامه‌ی جدید با پزشک مشورت کن."),
+    (("تغذیه", "رژیم", "غذا", "وزن"),
+     "تغذیه‌ی سالم یعنی تعادل، نه محرومیت 🥗\n"
+     "• نیمی از بشقاب را سبزیجات بگذار\n"
+     "• آب کافی بنوش و قندِ مایع را کم کن\n"
+     "• پروتئین را در هر وعده داشته باش\n"
+     "• برای رژیمِ اختصاصی حتماً با متخصص تغذیه مشورت کن."),
+    (("رمز عبور", "امنیت", "هک", "پسورد"),
+     "امنیتِ حساب‌ها 🔐\n"
+     "• برای هر سرویس رمزِ متفاوت و بلند (حداقل ۱۲ کاراکتر) بگذار\n"
+     "• تأییدِ دو مرحله‌ای را همیشه فعال کن\n"
+     "• روی لینک‌های ناشناس کلیک نکن\n"
+     "• از مدیریت‌کننده‌ی رمز استفاده کن."),
+    (("برنامه‌نویسی", "کدنویسی", "یادگیری برنامه", "پایتون"),
+     "یادگیری برنامه‌نویسی = پروژه + تمرینِ روزانه 💻\n"
+     "• یک زبان را انتخاب کن (پایتون برای شروع عالی است)\n"
+     "• مفاهیم را با پروژه‌ی کوچک تمرین کن، نه فقط ویدئو\n"
+     "• خطاها را بخوان؛ بهترین معلم‌اند\n"
+     "• روزانه ۳۰ دقیقه کد بزن؛ تداوم از استعداد مهم‌تر است."),
+    (("رزومه", "مصاحبه", "کار پیدا", "استخدام"),
+     "برای استخدامِ بهتر 🧾\n"
+     "• رزومه را برای هر شرکت سفارشی کن\n"
+     "• دستاوردها را با عدد نشان بده (مثال: ۳۰٪ افزایش فروش)\n"
+     "• قبل از مصاحبه درباره‌ی شرکت تحقیق کن\n"
+     "• دو سؤالِ هوشمندانه برای پایانِ مصاحبه آماده کن."),
+    (("مطالعه", "درس", "امتحان", "حفظ"),
+     "مطالعه‌ی مؤثر 📚\n"
+     "• روش «یادآوری فعال»: بعد از خواندن، از خودت امتحان بگیر\n"
+     "• مرورِ با فاصله (فردا، ۳ روز بعد، یک هفته بعد)\n"
+     "• هر ۴۵ دقیقه ۱۰ دقیقه استراحت\n"
+     "• مفاهیم را با مثالِ شخصی معنا کن تا بمانند."),
+    (("سرمایه‌گذاری", "پول", "پس‌انداز", "بورس"),
+     "پایه‌ی مالی شخصی 💰\n"
+     "• اول صندوقِ اضطراری (۳ تا ۶ ماه هزینه) بساز\n"
+     "• سرمایه‌گذاری را با مبلغِ کوچک و متنوع شروع کن\n"
+     "• وامِ با بهره‌ی بالا را اولویتِ تسویه قرار بده\n"
+     "• قبل از هر تصمیمِ بزرگ با مشاورِ مالی مشورت کن."),
+)
+
+
+def advice(query: str) -> str:
+    """پاسخِ آماده برای پرسش‌های پرتکرار (در صورت تطبیق)."""
+    clean = normalize(query or "").lower()
+    best, hits = "", 0
+    for keywords, text in ADVICE:
+        score = sum(1 for word in keywords if normalize(word).lower() in clean)
+        if score > hits:
+            best, hits = text, score
+    return best if hits else ""
+
+
+def greeting_for(hour: int | None = None) -> str:
+    """سلامِ متناسب با زمانِ روز."""
+    hour = time.localtime().tm_hour if hour is None else hour
+    if 5 <= hour < 12:
+        return "صبح‌تان به‌خیر 🌤"
+    if 12 <= hour < 18:
+        return "ظهر/عصرتان به‌خیر ☀️"
+    if 18 <= hour < 22:
+        return "عصرتان به‌خیر 🌇"
+    return "شب‌تان به‌خیر 🌙"
 
 
 # --------------------------------------------------------------------------- #

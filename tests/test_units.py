@@ -628,3 +628,37 @@ class TestBrain(unittest.TestCase):
         result = brain.analyze("ترجمه کن good morning")
         self.assertEqual(result["kind"], "translate")
         self.assertEqual(result["slots"]["text"], "good morning")
+
+
+class TestBrainPrecision(unittest.TestCase):
+    """دقتِ مغز: مرزِ واژه‌ها، ارتباطِ دانش و توصیه‌ها."""
+
+    def test_partial_word_is_not_a_currency(self):
+        """«اصطلاح» نباید به‌خاطر شباهت با «طلا» قیمت تلقی شود."""
+        from astra.services import brain
+        self.assertNotEqual(brain.analyze("اصطلاح عجیب")["kind"], "price")
+
+    def test_bitcoin_word_still_detected(self):
+        from astra.services import brain
+        self.assertEqual(brain.analyze("بیت\u200cکوین چنده")["kind"], "price")
+
+    def test_advice_for_howto_questions(self):
+        from astra.services import brain
+        self.assertTrue(brain.advice("چطور تمرکزم را بیشتر کنم"))
+        self.assertTrue(brain.advice("رمز عبور قوی چطور بسازم"))
+        self.assertFalse(brain.advice("عدد بیست و سه"))
+
+    def test_wiki_relevance_check(self):
+        from astra.services import brain
+        self.assertTrue(brain._relevant("کوانتوم", "کوانتوم"))
+        self.assertFalse(brain._relevant("تمرکز حواس", "امیررضا معصومی"))
+
+    def test_greeting_depends_on_hour(self):
+        from astra.services import brain
+        self.assertIn("صبح", brain.greeting_for(8))
+        self.assertIn("شب", brain.greeting_for(23))
+
+    def test_two_word_query_goes_to_knowledge(self):
+        from astra.services import brain
+        result = brain.analyze("Albert Einstein")
+        self.assertEqual(result["kind"], "wiki")
