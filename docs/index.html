@@ -1059,12 +1059,13 @@ const dzLoad=()=>{try{const d=JSON.parse(localStorage.getItem('dz')||'{}');
 function dzClock(){const t=Math.max(0,Math.floor((Date.now()-(DZ.t0||Date.now()))/1000));
  return fa(Math.floor(t/60))+':'+String(fa(t%60)).padStart(2,'۰');}
 function dzWinLine(L){
+  const svg=$('#dzLines'); if(!svg) return;
+  svg.querySelectorAll('.win').forEach(n=>n.remove());
+  if(!L||L.length<3) return;
   const cx=i=>[50,150,250][i%3], cy=i=>[50,150,250][Math.floor(i/3)];
   const x1=cx(L[0]),y1=cy(L[0]),x2=cx(L[2]),y2=cy(L[2]);
   const dx=Math.sign(x2-x1)*26, dy=Math.sign(y2-y1)*26;
-  const svg=$('#dzLines');
-  svg.querySelectorAll('.win').forEach(n=>n.remove());
-  if(L){const ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+  {const ln=document.createElementNS('http://www.w3.org/2000/svg','line');
     ln.setAttribute('class','win');
     ln.setAttribute('x1',x1-dx);ln.setAttribute('y1',y1-dy);
     ln.setAttribute('x2',x2+dx);ln.setAttribute('y2',y2+dy);
@@ -1191,7 +1192,8 @@ function initDooz(){
 
 /* ---------- چت هوشمند آسترا ---------- */
 let BRAIN=null, CHAT=[];
-const CH_SUG=['چه کاری می‌تونی انجام بدی؟','آب و هوا تهران','قیمت دلار','ساعت چنده','یک جوک بگو'];
+const CH_SUG=['چه کاری می‌تونی انجام بدی؟','آب و هوا تهران','قیمت دلار',
+  'قیمت بیت‌کوین','ساعت چنده','یک جوک بگو','فال حافظ','چطور تمرکزم را بیشتر کنم'];
 async function loadBrain(){ if(BRAIN) return BRAIN;
   try{ BRAIN=await jget('./data/brain.json'); }catch(e){ BRAIN={intents:[],replies:{}}; }
   return BRAIN; }
@@ -1415,7 +1417,7 @@ async function initBrain(){
   inp.addEventListener('focus',()=>{
     setTimeout(()=>{ fitChat();
       const bar=document.querySelector('.chatbar');
-      if(bar) bar.scrollIntoView({block:'end',behavior:'smooth'});
+      if(bar&&bar.scrollIntoView) bar.scrollIntoView({block:'end',behavior:'smooth'});
       chatToBottom(true); },320);
   });
   inp.addEventListener('blur',()=>setTimeout(fitChat,220));
@@ -1449,7 +1451,7 @@ async function openTool(name){
   show('tools');
   $('#toolBox').innerHTML=`<div class="panel">${UI[name]()}</div>`;
   const box=$('#toolBox');
-  setTimeout(()=>box.scrollIntoView({behavior:'smooth',block:'start'}),60);
+  setTimeout(()=>{ if(box&&box.scrollIntoView) box.scrollIntoView({behavior:'smooth',block:'start'}); },60);
   try{
     if(name==='weather') await initWeather();
     if(name==='market') initMarket();
