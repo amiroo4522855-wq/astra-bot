@@ -568,3 +568,63 @@ class TestAnonChat(unittest.TestCase):
         self.assertEqual(self.db.anon_link(token)["status"], "banned")
         anon.join_request(self.make("222"), token)
         self.assertIn("باطل", self.client.last_to("222"))
+
+
+class TestBrain(unittest.TestCase):
+    """مغزِ آسترا: تشخیص نیت و پاسخ‌های مؤدبانه."""
+
+    def test_normalize_unifies_arabic(self):
+        from astra.services import brain
+        self.assertEqual(brain.normalize("علي"), "علی")
+
+    def test_greeting_is_detected(self):
+        from astra.services import brain
+        for text in ("سلام", "درود", "صبح بخیر", "hello"):
+            result = brain.analyze(text)
+            self.assertEqual(result["kind"], "text", text)
+            self.assertTrue(result["text"])
+
+    def test_math_detection(self):
+        from astra.services import brain
+        for text in ("حاصل ۱۲ ضرب ۵", "۲+۳*۴", "۱۲ تقسیم بر ۴"):
+            result = brain.analyze(text)
+            self.assertEqual(result["kind"], "calc", text)
+            self.assertTrue(result["slots"].get("expr"))
+
+    def test_price_beats_time_when_currency_named(self):
+        from astra.services import brain
+        self.assertEqual(brain.analyze("قیمت دلار چنده")["kind"], "price")
+        self.assertEqual(brain.analyze("ساعت چنده")["kind"], "time")
+
+    def test_conversion_slots(self):
+        from astra.services import brain
+        result = brain.analyze("۱۰ کیلومتر به متر")
+        self.assertEqual(result["kind"], "convert")
+        self.assertEqual(result["slots"]["source"], "کیلومتر")
+        self.assertEqual(result["slots"]["target"], "متر")
+
+    def test_weather_extracts_city(self):
+        from astra.services import brain
+        result = brain.analyze("آب و هوا کرمانشاه")
+        self.assertEqual(result["kind"], "weather")
+        self.assertEqual(result["slots"]["city"], "کرمانشاه")
+
+    def test_bitcoin_is_price_not_poem(self):
+        """«بیت‌کوین» نباید به‌خاطر شباهت با «بیت» شعر تلقی شود."""
+        from astra.services import brain
+        self.assertNotEqual(brain.analyze("بیت\u200cکوین چیست")["kind"], "poem")
+
+    def test_local_summary_picks_key_sentences(self):
+        from astra.handlers.ai import _local_summary
+        text = ("اقتصاد ایران در سال گذشته رشد داشت. رشد اقتصادی مهم است. "
+                "تورم نیز کاهش یافت. کاهش تورم خبر خوبی است. "
+                "در پایان باید گفت وضعیت بازار بهتر شد. این متن یک آزمایش است.")
+        result = _local_summary(text, lines=2)
+        self.assertIn("خلاصه", result)
+        self.assertLessEqual(len(result.split("\n")), 7)
+
+    def test_translation_target_detection(self):
+        from astra.services import brain
+        result = brain.analyze("ترجمه کن good morning")
+        self.assertEqual(result["kind"], "translate")
+        self.assertEqual(result["slots"]["text"], "good morning")

@@ -38,7 +38,7 @@ def city_time(city: str) -> tuple[str, str, str] | None:
     zone = _zone(zone_name)
     now = datetime.now(zone) if zone else tehran_time()
     jy, jm, jd = gregorian_to_jalali(now.year, now.month, now.day)
-    date_text = f"{en_to_fa(jd)}/{en_to_fa(jm):0>2}/{en_to_fa(jy)}"
+    date_text = f"{en_to_fa(jd).rjust(2, '۰')}/{en_to_fa(jm).rjust(2, '۰')}/{en_to_fa(jy)}"
     weekday = PERSIAN_WEEKDAYS[(now.weekday() + 2) % 7]
     return city, en_to_fa(now.strftime("%H:%M")), f"{weekday} {date_text}"
 
@@ -60,6 +60,7 @@ def now_report() -> str:
         "🕰 زمان و تاریخ\n"
         "───────────────\n"
         f"🇮🇷 تهران: {en_to_fa(now.strftime('%H:%M:%S'))}\n"
-        f"📅 {weekday} {en_to_fa(jd)}/{en_to_fa(jm):0>2}/{en_to_fa(jy)}\n"
+        f"📅 {weekday} {en_to_fa(jd).rjust(2, '۰')}/{en_to_fa(jm).rjust(2, '۰')}"
+        f"/{en_to_fa(jy)}\n"
         f"🌍 UTC: {en_to_fa(datetime.now(timezone.utc).strftime('%H:%M'))}"
     )

@@ -124,8 +124,10 @@ MARKET_DOWN = ("📡 دریافت اطلاعات بازار در این لحظه
                "چند دقیقه‌ی دیگر دوباره امتحان کن 🙏")
 
 
-def _report(ctx: Context, kind: str) -> None:
+def _report(ctx: Context, kind: str, silent: bool = False) -> str:
+    """تهیه‌ی گزارش بازار؛ اگر silent باشد فقط متن را برمی‌گرداند."""
     rows: list = []
+    from_channel = False
     try:
         rows = currency.fetch_tgju()
         if not rows:
@@ -138,13 +140,30 @@ def _report(ctx: Context, kind: str) -> None:
                 rows = currency.fetch_crypto()
             except Exception as crypto_error:
                 if not rows:
+                    if silent:
+                        return ""
                     fail(ctx, "market", crypto_error, MARKET_DOWN)
-                    return
+                    return ""
         if not rows:
             rows = currency.channel_prices(ctx.db)
         if not rows:
+            try:                                  # خواندنِ مستقیمِ کانالِ متصل
+                rows = currency.fetch_channel_web()
+                from_channel = bool(rows)
+            except Exception:
+                rows = []
+        if not rows and kind == "crypto":
+            try:
+                rows = currency.fetch_crypto()
+            except Exception as crypto_error:
+                if not silent:
+                    fail(ctx, "market", crypto_error, MARKET_DOWN)
+                return ""
+        if not rows:
+            if silent:
+                return ""
             fail(ctx, "market", tgju_error, MARKET_DOWN)
-            return
+            return ""
 
     if kind == "currency":
         title, keywords = "💰 نرخ ارز", ("💵", "💶", "💷", "🕌", "🇹🇷", "🇨🇳", "🇮🇶", "🇦🇫")
@@ -157,8 +176,10 @@ def _report(ctx: Context, kind: str) -> None:
     if kind == "crypto" and not selected:
         selected = rows
     if not selected:
+        if silent:
+            return ""
         ctx.send("📊 داده‌ای برای این بخش پیدا نشد.\nکمی بعد دوباره امتحان کن 🙏")
-        return
+        return ""
 
     lines = [f"{title}", SEPARATOR]
     lines += [f"{label} : {value}" for label, value, _ in selected[:12]]
@@ -168,19 +189,30 @@ def _report(ctx: Context, kind: str) -> None:
         channel = currency.fetch_channel_web()
     except Exception:
         channel = []
-    if channel:
+    if channel and not from_channel:          # اگر منبع اصلی کانال بود، تکرار نمی‌کنیم
         channel = [row for row in channel
                    if any(row[0].startswith(k) for k in keywords)] or channel
         lines.append(SEPARATOR)
-        lines.append(f"📢 بر اساس کانال @{config.PRICE_CHANNEL}:")
-        lines += [f"{label} : {value}" for label, value, _ in channel[:8]]
-        if currency.channel_stamp():
-            lines.append(f"🕓 آخرین به‌روزرسانی کانال: {currency.channel_stamp()[:16]}")
+        if not from_channel:
+            lines.append(f"📢 بر اساس کانال @{config.PRICE_CHANNEL}:")
+            lines += [f"{label} : {value}" for label, value, _ in channel[:8]]
+        stamp = currency.channel_stamp()
+        if stamp:
+            lines.append(f"🕓 آخرین به‌روزرسانی کانال: {stamp[:16].replace('T', ' · ')}")
+    elif from_channel:
+        stamp = currency.channel_stamp()
+        lines.append(SEPARATOR)
+        lines.append(f"📢 منبع: کانال @{config.PRICE_CHANNEL}"
+                     + (f" · 🕓 {stamp[:16].replace('T', ' · ')}" if stamp else ""))
 
-    ctx.send("\n".join(lines),
+    text = "\n".join(lines)
+    if silent:
+        return text
+    ctx.send(text,
              kb().row(btn("🔄 بروزرسانی", f"practical:{kind}"),
                       btn("🌤 کاربردی", "menu:practical"))
                   .row(btn("🏠 منوی اصلی", "nav:home")).build())
+    return text
 
 
 @route("practical:currency")

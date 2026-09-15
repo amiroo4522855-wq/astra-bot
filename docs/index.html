@@ -265,7 +265,46 @@ body.ready .hero{animation:spFade .7s var(--e) both}
 @keyframes glow{0%,100%{box-shadow:0 10px 26px rgba(139,92,246,.45)}50%{box-shadow:0 14px 34px rgba(34,211,238,.5)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
- /* ---------- بازی دوز ---------- */
+ /* ---------- بازی دوز (تابلوی حرفه‌ای) ---------- */
+ .dz-stage{position:relative;width:min(300px,88%);aspect-ratio:1/1;margin:4px auto 2px}
+ .dz-grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(3,1fr);gap:0}
+ .dz-cell{position:relative;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .25s var(--e)}
+ .dz-cell::after{content:'';position:absolute;inset:6px;border-radius:14px;background:var(--panel2);
+  opacity:0;transform:scale(.85);transition:.28s var(--e)}
+ .dz-cell:hover::after{opacity:1;transform:scale(1)}
+ .dz-cell svg{width:58%;height:58%;position:relative;z-index:2;
+  stroke-dasharray:200;animation:drawz .55s var(--e) both}
+ .dz-cell:active{transform:scale(.94)}
+ .dz-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+ .dz-lines line{stroke:rgba(255,255,255,.16);stroke-width:2.5;stroke-linecap:round}
+ .dz-lines .win{stroke:url(#gwin);stroke-width:6;stroke-linecap:round;
+  stroke-dasharray:420;animation:drawz .6s var(--e) both}
+ @keyframes drawz{from{stroke-dashoffset:200}to{stroke-dashoffset:0}}
+ .dz-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;
+  background:var(--panel2);border:1px solid var(--line);font-size:11.5px}
+ .dz-badge.me{background:rgba(34,211,238,.14);border-color:rgba(34,211,238,.4)}
+ .dz-badge.bot{background:rgba(244,114,182,.14);border-color:rgba(244,114,182,.4)}
+
+ /* ---------- چت هوشمند ---------- */
+ .chat{height:min(52vh,340px);overflow-y:auto;display:flex;flex-direction:column;gap:9px;
+  padding:10px 4px;scroll-behavior:smooth}
+ .msg{max-width:86%;padding:9px 12px;border-radius:16px;font-size:12.8px;line-height:1.95;
+  white-space:pre-wrap;word-break:break-word;animation:rise .3s var(--e) both}
+ .msg.me{align-self:flex-start;background:linear-gradient(135deg,rgba(139,92,246,.34),rgba(34,211,238,.26));
+  border-bottom-left-radius:5px;border:1px solid rgba(139,92,246,.35)}
+ .msg.bot{align-self:flex-end;background:var(--panel);border:1px solid var(--line);
+  border-bottom-right-radius:5px}
+ .msg .who{display:block;font-size:10.5px;color:var(--mut);margin-bottom:3px}
+ .typing{display:inline-flex;gap:4px;align-self:flex-end;background:var(--panel);
+  border:1px solid var(--line);border-radius:16px;padding:11px 14px}
+ .typing i{width:6px;height:6px;border-radius:50%;background:var(--mut);animation:blink 1.2s infinite}
+ .typing i:nth-child(2){animation-delay:.18s}.typing i:nth-child(3){animation-delay:.36s}
+ @keyframes blink{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+ .chatbar{display:flex;gap:7px;margin-top:9px}
+ .chatbar input{flex:1}
+ @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
  .dz-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:8px}
  .dz-board{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(270px,86%);aspect-ratio:1/1}
  .dz-cell{border-radius:16px;background:var(--panel2);border:1px solid var(--line);
@@ -343,6 +382,21 @@ body.ready .hero{animation:spFade .7s var(--e) both}
   <symbol id="i-uv" viewBox="0 0 24 24"><path d="M4 17a8 8 0 1116 0"/><path d="M8.5 20l1.5-3 1.5 3M14.5 20l1.5-3 1.5 3"/></symbol>
   <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
   <symbol id="i-sunrise" viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M8 13l4-4 4 4"/><path d="M12 9V4M6.5 10.5L4.5 8.5M17.5 10.5l2-2"/></symbol>
+  <linearGradient id="gx" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient>
+  <linearGradient id="go" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#f472b6"/></linearGradient>
+  <linearGradient id="gwin" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+  <symbol id="i-x" viewBox="0 0 100 100">
+    <path d="M24 24L76 76M76 24L24 76" stroke="url(#gx)" stroke-width="13"
+     stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="i-o" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="26" stroke="url(#go)" stroke-width="13" fill="none"/></symbol>
+  <symbol id="i-brain" viewBox="0 0 24 24">
+    <path d="M12 5.2a3 3 0 00-5.6-1.4A2.8 2.8 0 004 6.5a3 3 0 00.6 4.4A3 3 0 006.4 15a3 3 0 005.6 1.2z"/>
+    <path d="M12 5.2a3 3 0 015.6-1.4A2.8 2.8 0 0120 6.5a3 3 0 01-.6 4.4A3 3 0 0117.6 15a3 3 0 01-5.6 1.2z"/>
+    <path d="M12 5.2v11"/></symbol>
   <symbol id="i-game" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/>
     <path d="M8.2 8.2l3.2 3.2M11.4 8.2l-3.2 3.2"/><circle cx="15.6" cy="9.8" r="2.1"/>
     <path d="M9.4 17.4l2.8-2.8M12.2 17.4l-2.8-2.8"/><circle cx="16.4" cy="16.2" r="2.1"/></symbol>
@@ -536,6 +590,7 @@ const TOOLS=[
  {k:'calc',t:'ماشین‌حساب',s:'پیشرفته',c:'rgba(139,92,246,.32)'},
  {k:'convert',t:'تبدیل واحد',s:'۸ دسته',c:'rgba(96,165,250,.28)'},
  {k:'clock',t:'ساعت جهانی',s:'۷۸ شهر دنیا',c:'rgba(45,212,191,.28)'},
+ {k:'brain',i:'brain',t:'چت هوشمند',s:'مؤدب · دقیق · با داده واقعی',c:'rgba(139,92,246,.34)'},
  {k:'dooz',i:'game',t:'بازی دوز ❌⭕️',s:'۴ سطح · همین‌جا بازی کن',c:'rgba(52,211,153,.28)'},
  {k:'anon',i:'anon',t:'چت ناشناس 🕵️',s:'ساخت لینک امن و مخفی',c:'rgba(139,92,246,.32)'},
 ];
@@ -760,16 +815,29 @@ const UI={
 
  dooz:()=>`<h2><svg class="ic"><use href="#i-game"/></svg> بازی دوز ❌⭕️</h2>
   <div class="dz-levels" id="dzLevels"></div>
-  <div class="dz-wrap">
-   <div class="dz-status" id="dzStatus">آماده‌ای؟ یکی از سطح‌ها را انتخاب کن 😎</div>
-   <div class="dz-board" id="dzBoard"></div>
-   <div class="dz-score" id="dzScore">🏆 ۰ برد · 💀 ۰ باخت · 🤝 ۰ مساوی</div>
+  <div class="row" style="justify-content:center;gap:7px;margin:8px 0 2px">
+   <span class="dz-badge me" id="dzBadgeMe">❌ شما</span>
+   <span class="dz-badge bot" id="dzBadgeBot">⭕️ آسترا</span>
+   <span class="dz-badge" id="dzBadgeTurn">نوبت: شما</span>
   </div>
-  <div class="row" style="margin-top:11px;justify-content:center">
+  <div class="dz-stage">
+   <div class="dz-grid" id="dzBoard"></div>
+   <svg class="dz-lines" viewBox="0 0 300 300" preserveAspectRatio="none" id="dzLines">
+    <line x1="100" y1="8" x2="100" y2="292"/><line x1="200" y1="8" x2="200" y2="292"/>
+    <line x1="8" y1="100" x2="292" y2="100"/><line x1="8" y1="200" x2="292" y2="200"/>
+   </svg>
+  </div>
+  <div class="dz-status" id="dzStatus">آماده‌اید؟ سطح را انتخاب کنید 😎</div>
+  <div class="dz-score" id="dzScore">🏆 ۰ برد · 💀 ۰ باخت · 🤝 ۰ مساوی</div>
+  <div class="row" style="margin-top:10px;justify-content:center">
+   <button class="ghost" id="dzUndo">↩️ برگشت</button>
    <button class="ghost" id="dzNew">🔄 شروع دوباره</button>
-   <button class="ghost" id="dzBot">🤖 بازی در ربات</button>
   </div>
-  <p class="mut" style="margin:9px 0 0">سطح «حرفه‌ای 👑» شکست‌ناپذیر است؛ در ربات می‌توانی دونفره هم بازی کنی 👥</p>`,
+  <div class="row" style="justify-content:center">
+   <button class="ghost" id="dzFirst">🙋 تغییر شروع‌کننده</button>
+   <button class="ghost" id="dzBot">🤖 دونفره در ربات</button>
+  </div>
+  <p class="mut" style="margin:9px 0 0">سطح «حرفه‌ای 👑» شکست‌ناپذیر است. در ربات: ‎/dooz‎</p>`,
 
  anon:()=>`<h2><svg class="ic"><use href="#i-anon"/></svg> چت ناشناس 🕵️</h2>
   <p class="mut" style="margin:0 0 10px">یک لینک اختصاصی می‌سازی، برای هر کس می‌فرستی و
@@ -784,6 +852,20 @@ const UI={
    <button class="ghost" id="anHelp">🛡 راهنمای امنیت</button>
   </div>
   <div class="out" id="anOut">با زدن دکمه‌ی بالا، ربات بلافاصله لینک اختصاصی شما را در چت تلگرام می‌فرستد 📨</div>`,
+
+ brain:()=>`<h2><svg class="ic"><use href="#i-brain"/></svg> چت هوشمند آسترا</h2>
+  <div class="chat" id="chLog"></div>
+  <div class="row" id="chSug" style="flex-wrap:wrap;gap:5px"></div>
+  <div class="chatbar">
+   <input id="chIn" placeholder="بنویسید… (مثال: آب و هوا تهران)" autocomplete="off">
+   <button id="chSend" style="min-width:66px">ارسال</button>
+  </div>
+  <div class="row" style="margin-top:9px;justify-content:center">
+   <button class="ghost" id="chClear">🧹 پاک کردن</button>
+   <button class="ghost" id="chBot">📨 ادامه در ربات</button>
+  </div>
+  <p class="mut" style="margin:9px 0 0">آسترا پاسخ‌هایش را تا جای ممکن از داده‌ی واقعی می‌گیرد:
+   آب‌وهوا، قیمت، ساعت، محاسبه و دانش عمومی 🌿</p>`,
 
  clock:()=>`<h2><svg class="ic"><use href="#i-clock"/></svg> ساعت جهانی</h2>
   <div class="out" style="margin:0 0 10px">🕓 ${'<span id="iranClock"></span>'}</div>
@@ -813,8 +895,9 @@ const UNITS={'متر':'m','کیلومتر':'km','سانتی‌متر':'cm','ما
 const FACT={m:1,km:1000,cm:.01,mi:1609.344,ft:.3048,in:.0254,kg:1,g:.001,lb:.45359237,oz:.0283495,
  s:1,min:60,h:3600,d:86400};
 
-/* ---------- بازی دوز (هوش: جستجوی کامل) ---------- */
-const DZ={b:null,lvl:'hard',turn:'x',over:false,score:{win:0,lose:0,draw:0}};
+/* ---------- بازی دوز (هوش: جستجوی کامل + تابلوی SVG) ---------- */
+const DZ={b:null,lvl:'hard',first:'user',hist:[],over:false,t0:0,
+  score:{win:0,lose:0,draw:0}};
 const DZW=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 const dzEmpty=b=>{const r=[];for(let i=0;i<9;i++)if(b[i]==='-')r.push(i);return r;};
 function dzWinner(b){for(const L of DZW){if(b[L[0]]!=='-'&&b[L[0]]===b[L[1]]&&b[L[1]]===b[L[2]])return[b[L[0]],L];}return null;}
@@ -837,66 +920,235 @@ function dzBot(b,lvl){const e=dzEmpty(b);if(!e.length)return -1;
    return e[Math.floor(Math.random()*e.length)];}
  return e[Math.floor(Math.random()*e.length)];}
 const DZL=[['easy','آسان 🌱'],['medium','متوسط ⚡'],['hard','سخت 🔥'],['pro','حرفه‌ای 👑']];
-function dzSave(){try{localStorage.setItem('dz',JSON.stringify(DZ.score))}catch(e){}}
-function dzLoad(){try{const d=JSON.parse(localStorage.getItem('dz')||'{}');
-  DZ.score={win:d.win|0,lose:d.lose|0,draw:d.draw|0}}catch(e){}}
-function dzCell(v,i){
- if(v==='x')return `<svg class="dz-x"><path d="M22 22L78 78M78 22L22 78"/></svg>`;
- if(v==='o')return `<svg class="dz-o"><circle cx="50" cy="50" r="27"/></svg>`;
- return `<span style="opacity:.35;font-weight:800">${fa(i+1)}</span>`;}
+const dzSave=()=>{try{localStorage.setItem('dz',JSON.stringify(DZ.score))}catch(e){}};
+const dzLoad=()=>{try{const d=JSON.parse(localStorage.getItem('dz')||'{}');
+  DZ.score={win:d.win|0,lose:d.lose|0,draw:d.draw|0}}catch(e){}};
+function dzClock(){const t=Math.max(0,Math.floor((Date.now()-(DZ.t0||Date.now()))/1000));
+ return fa(Math.floor(t/60))+':'+String(fa(t%60)).padStart(2,'۰');}
+function dzWinLine(L){
+  const cx=i=>[50,150,250][i%3], cy=i=>[50,150,250][Math.floor(i/3)];
+  const x1=cx(L[0]),y1=cy(L[0]),x2=cx(L[2]),y2=cy(L[2]);
+  const dx=Math.sign(x2-x1)*26, dy=Math.sign(y2-y1)*26;
+  const svg=$('#dzLines');
+  svg.querySelectorAll('.win').forEach(n=>n.remove());
+  if(L){const ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+    ln.setAttribute('class','win');
+    ln.setAttribute('x1',x1-dx);ln.setAttribute('y1',y1-dy);
+    ln.setAttribute('x2',x2+dx);ln.setAttribute('y2',y2+dy);
+    svg.appendChild(ln);}
+}
 function dzDraw(){
- const w=dzWinner(DZ.b);
- $('#dzBoard').innerHTML=DZ.b.map((v,i)=>{
-   const win=w&&w[1].includes(i)?' win':'';
-   return `<div class="dz-cell${win}" data-i="${i}" style="--c1:rgba(139,92,246,.2)">
-     ${dzCell(v,i)}</div>`;}).join('');
- $$('#dzBoard .dz-cell').forEach(c=>c.onclick=()=>dzPlay(+c.dataset.i));
- const s=DZ.score;
- $('#dzScore').textContent=`🏆 ${fa(s.win)} برد · 💀 ${fa(s.lose)} باخت · 🤝 ${fa(s.draw)} مساوی`;
- if(!DZ.b){ $('#dzStatus').textContent='آماده‌ای؟ یکی از سطح‌ها را انتخاب کن 😎'; return; }
- if(w){ DZ.over=true;
-   $('#dzStatus').textContent = w[0]==='x'?'🎉 بردی! آفرین 🏆':'🤖 من بردم! دوباره؟ 😄'; return; }
- if(!DZ.b.includes('-')){ DZ.over=true; $('#dzStatus').textContent='🤝 مساوی شد!'; return; }
- $('#dzStatus').textContent='❌ نوبت تو';}
-function dzNew(){ DZ.b='---------'.split(''); DZ.turn='x'; DZ.over=false; dzDraw();
- $('#dzStatus').textContent='شروع شد! نوبت تو ❌';}
+  const board=$('#dzBoard');
+  if(!board) return;
+  const w=DZ.b?dzWinner(DZ.b):null;
+  board.innerHTML=(DZ.b||'-'.repeat(9).split('')).map((v,i)=>
+    v==='x'?'<div class="dz-cell" data-i="'+i+'"><svg><use href="#i-x"/></svg></div>':
+    v==='o'?'<div class="dz-cell" data-i="'+i+'"><svg><use href="#i-o"/></svg></div>':
+    '<div class="dz-cell" data-i="'+i+'"><span style="opacity:.28;font-weight:800;font-size:13px">'+fa(i+1)+'</span></div>'
+  ).join('');
+  $$('#dzBoard .dz-cell').forEach(c=>c.onclick=()=>dzPlay(+c.dataset.i));
+  dzWinLine(w?w[1]:null);
+  const s=DZ.score;
+  $('#dzScore').textContent='🏆 '+fa(s.win)+' برد · 💀 '+fa(s.lose)+' باخت · 🤝 '+fa(s.draw)+' مساوی';
+  const turn=$('#dzBadgeTurn');
+  if(!DZ.b){ turn.textContent='● شروع نشده'; turn.className='dz-badge';
+    $('#dzStatus').textContent='آماده‌اید؟ سطح را انتخاب کنید 😎'; return; }
+  if(w){ DZ.over=true;
+    $('#dzStatus').textContent=w[0]==='x'?'🎉 بردید! آفرین 🏆':'🤖 آسترا برد! دوباره؟ 😄';
+    turn.textContent='پایان بازی'; return; }
+  if(!DZ.b.includes('-')){ DZ.over=true; $('#dzStatus').textContent='🤝 مساوی شد!';
+    turn.textContent='پایان بازی'; return; }
+  turn.textContent='نوبت: شما ❌'; turn.className='dz-badge me';
+  $('#dzStatus').textContent='❌ نوبت شماست · حرکت '+fa(DZ.hist.length)+' از ۹ · ⏱ '+dzClock();
+}
+function dzNew(){
+  DZ.b='---------'.split(''); DZ.hist=[]; DZ.over=false; DZ.t0=Date.now();
+  if(DZ.first==='bot'){ const m=dzBot(DZ.b,DZ.lvl); if(m>=0){DZ.hist.push(m); DZ.b[m]='o';} }
+  dzDraw();
+  if(DZ.first==='bot') $('#dzStatus').textContent='🤖 آسترا شروع کرد؛ نوبت شما ❌';
+}
 function dzPlay(i){
- if(!DZ.b||DZ.over)return;
- if(DZ.b[i]!=='-'){ toast('این خانه پر است'); return; }
- buzz();
- DZ.b[i]='x';
- let w=dzWinner(DZ.b);
- if(!w&&DZ.b.includes('-')){
-   const m=dzBot(DZ.b,DZ.lvl); if(m>=0)DZ.b[m]='o';
-   w=dzWinner(DZ.b);
- }
- if(w){ DZ.over=true;
-   if(w[0]==='x'){DZ.score.win++; toast('🎉 بردی!'); }
-   else {DZ.score.lose++; }
-   dzSave();
- } else if(!DZ.b.includes('-')){ DZ.over=true; DZ.score.draw++; dzSave(); }
- dzDraw();}
+  if(!DZ.b||DZ.over) return;
+  if(DZ.b[i]!=='-'){ toast('این خانه پر است'); return; }
+  buzz();
+  DZ.b[i]='x'; DZ.hist.push(i);
+  let w=dzWinner(DZ.b);
+  if(!w&&DZ.b.includes('-')){
+    const m=dzBot(DZ.b,DZ.lvl); if(m>=0){DZ.b[m]='o'; DZ.hist.push(m); w=dzWinner(DZ.b);}
+  }
+  if(w){ DZ.over=true;
+    if(w[0]==='x'){DZ.score.win++; toast('🎉 بردید!');} else DZ.score.lose++;
+    dzSave();
+  } else if(!DZ.b.includes('-')){ DZ.over=true; DZ.score.draw++; dzSave(); }
+  dzDraw();
+}
+function dzUndo(){
+  if(!DZ.b||!DZ.hist.length){ toast('حرکتی برای برگشت نیست'); return; }
+  buzz();
+  const n=(DZ.hist.length>=2)?2:1;
+  DZ.hist=DZ.hist.slice(0,-n);
+  DZ.b='---------'.split('');
+  DZ.hist.forEach((idx,k)=>{ DZ.b[idx]=(k%2===0)?'x':'o'; });
+  DZ.over=false; dzDraw(); toast('↩️ برگشت داده شد');
+}
 function initDooz(){
- dzLoad();
- $('#dzLevels').innerHTML=DZL.map(([k,n])=>
-   `<span class="chip${k===DZ.lvl?' on':''}" data-lvl="${k}">${n}</span>`).join('');
- $$('#dzLevels .chip').forEach(c=>c.onclick=()=>{
-   buzz();
-   $$('#dzLevels .chip').forEach(x=>x.classList.remove('on'));
-   c.classList.add('on'); DZ.lvl=c.dataset.lvl; dzNew();});
- $('#dzNew').onclick=()=>{buzz();dzNew();};
- $('#dzBot').onclick=()=>send('dooz');
- DZ.b=null; dzDraw();}
-function initAnon(){
- $('#anGo').onclick=()=>{ send('anon');
-   $('#anOut').textContent='✅ درخواست فرستاده شد؛ لینک اختصاصی‌ات همین حالا در چت تلگرام می‌آید 📨';};
- $('#anHelp').onclick=()=>{
-   $('#anOut').innerHTML='🛡 <b>امنیت چت ناشناس</b><br>'+
-    '• شماره، نام و آیدی شما هرگز فاش نمی‌شود<br>'+
-    '• پیام‌های فورواردی ارسال نمی‌شوند (جلوی نشت هویت)<br>'+
-    '• محدودیت سرعت برای جلوگیری از اسپم<br>'+
-    '• ابطال لینک، بلاک، گزارش و بستن چت در هر لحظه<br>'+
-    '• افشای هویت فقط وقتی <b>هر دو نفر</b> دکمه را بزنند';};}
+  dzLoad();
+  $('#dzLevels').innerHTML=DZL.map(([k,n])=>
+    '<span class="chip'+(k===DZ.lvl?' on':'')+'" data-lvl="'+k+'">'+n+'</span>').join('');
+  $$('#dzLevels .chip').forEach(c=>c.onclick=()=>{buzz();
+    $$('#dzLevels .chip').forEach(x=>x.classList.remove('on'));
+    c.classList.add('on'); DZ.lvl=c.dataset.lvl; dzNew();});
+  $('#dzNew').onclick=()=>{buzz();dzNew();};
+  $('#dzUndo').onclick=dzUndo;
+  $('#dzFirst').onclick=()=>{buzz();
+    DZ.first=DZ.first==='user'?'bot':'user';
+    $('#dzFirst').textContent=DZ.first==='user'?'🙋 شروع با شما':'🤖 شروع با آسترا';
+    dzNew();};
+  $('#dzBot').onclick=()=>send('dooz');
+  $('#dzFirst').textContent=DZ.first==='user'?'🙋 شروع با شما':'🤖 شروع با آسترا';
+  DZ.b=null; dzDraw();
+}
+
+/* ---------- چت هوشمند آسترا ---------- */
+let BRAIN=null, CHAT=[];
+const CH_SUG=['چه کاری می‌تونی انجام بدی؟','آب و هوا تهران','قیمت دلار','ساعت چنده','یک جوک بگو'];
+async function loadBrain(){ if(BRAIN) return BRAIN;
+  try{ BRAIN=await jget('./data/brain.json'); }catch(e){ BRAIN={intents:[],replies:{}}; }
+  return BRAIN; }
+const chNorm=t=>(t||'').replace(/[\u064B-\u0652\u200c]/g,'').trim().toLowerCase();
+function chSave(){ try{localStorage.setItem('ch',JSON.stringify(CHAT.slice(-40)));}catch(e){} }
+function chAdd(who,text){
+  CHAT.push({who,text,t:Date.now()}); chSave();
+  const log=$('#chLog'); if(!log) return;
+  const d=document.createElement('div');
+  d.className='msg '+(who==='me'?'me':'bot');
+  d.innerHTML='<span class="who">'+(who==='me'?'شما':'آسترا')+'</span>'+
+    String(text).replace(/</g,'&lt;');
+  log.appendChild(d); log.scrollTop=log.scrollHeight;
+  return d;
+}
+function chTyping(on){
+  const log=$('#chLog'); if(!log) return null;
+  let el=$('#chTyping');
+  if(on){ if(!el){ el=document.createElement('div'); el.id='chTyping';
+      el.className='typing'; el.innerHTML='<i></i><i></i><i></i>'; log.appendChild(el);
+      log.scrollTop=log.scrollHeight; } return el; }
+  if(el) el.remove(); return null;
+}
+async function weatherText(city){
+  const list=await loadCities();
+  const c=list.find(x=>x.name===city);
+  if(!c) return null;
+  const d=await jgetSmart('https://api.open-meteo.com/v1/forecast?latitude='+c.lat+
+    '&longitude='+c.lon+'&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=Asia/Tehran');
+  const cur=d.current||{}; const desc=(WX[cur.weather_code]||['نامعلوم'])[0];
+  return '🌤 '+c.name+' · '+c.province+'\n▫️ '+desc+' · دما '+fa(Math.round(cur.temperature_2m))+'°C\n▫️ رطوبت '+fa(cur.relative_humidity_2m)+'٪ · باد '+fa(Math.round(cur.wind_speed_10m))+' km/h';
+}
+async function priceText(){
+  try{
+    const d=await jget('./data/prices.json');
+    if(!d.rows||!d.rows.length) return null;
+    return '📢 قیمت‌ها از کانال @'+d.channel+'\n'+
+      d.rows.slice(0,6).map(r=>'▫️ '+r.label+': '+r.value).join('\n')+
+      '\n🕓 '+d.updated;
+  }catch(e){ return null; }
+}
+async function wikiText(q){
+  try{
+    const s=await jgetSmart('https://fa.wikipedia.org/w/api.php?action=query&list=search&srsearch='+
+      encodeURIComponent(q)+'&format=json&srlimit=1');
+    const hit=(s.query&&s.query.search||[])[0]; if(!hit) return null;
+    const d=await jgetSmart('https://fa.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(hit.title));
+    if(!d.extract) return null;
+    let t=d.extract.replace(/\s+/g,' ').trim();
+    if(t.length>420) t=t.slice(0,420)+'…';
+    return '📚 '+hit.title+'\n'+t+'\nمنبع: ویکی‌پدیا';
+  }catch(e){ return null; }
+}
+async function brainAnswer(q){
+  const b=await loadBrain(); const n=chNorm(q);
+  const hit=(b.intents||[]).find(it=>(it.patterns||[]).some(p=>n.includes(p)));
+  if(hit){
+    if(hit.kind==='who') return b.about;
+    if(hit.kind==='ability') return b.ability;
+    if(hit.kind==='joke'){
+      try{ const j=await jget('./data/jokes.json'); return '😂 '+j[Math.floor(Math.random()*j.length)]; }
+      catch(e){ return '😂 فعلاً جوکی ندارم 🌿'; }
+    }
+    if(hit.kind==='poem'){
+      try{ const p=await jget('./data/poems.json'); const it=p[Math.floor(Math.random()*p.length)];
+        return '📜 '+it.poet+'\n'+it.text; }catch(e){ return '📜 شعری در دسترس نیست 🌙'; }
+    }
+    const list=b.replies&&b.replies[hit.kind];
+    if(list&&list.length) return list[Math.floor(Math.random()*list.length)];
+  }
+  // داده‌های واقعی
+  if(/ساعت|تاریخ|چه روزی|چندشنبه/.test(n))
+    return '🕓 '+jalaliNow()+'\n🇮🇷 تهران: '+new Date().toLocaleTimeString('fa-IR',{timeZone:'Asia/Tehran'});
+  if(/دلار|یورو|سکه|طلا|قیمت|نرخ|تتر|بیت/.test(n)){
+    const p=await priceText(); if(p) return p; }
+  if(/آب ?و ?هوا|هوا|دما|باران/.test(n)){
+    let city='';
+    try{ const list=await loadCities();
+      city=(list.find(c=>n.includes(chNorm(c.name)))||{}).name||''; }catch(e){}
+    if(city){ try{ const w=await weatherText(city); if(w) return w; }catch(e){} }
+    return '🏙 کدام شهر؟ بنویسید: «آب و هوا تهران» 🌤';
+  }
+  const expr=q.replace(/[۰-۹]/g,d=>'0123456789'['۰۱۲۳۴۵۶۷۸۹'.indexOf(d)])
+    .replace(/\s/g,'')
+    .replace(/تقسیمبر|تقسیم/g,'/').replace(/ضربدر|ضرب/g,'*')
+    .replace(/بعلاوه|باعلاوه/g,'+').replace(/منهای/g,'-')
+    .replace(/×/g,'*').replace(/÷/g,'/');
+  const cand=(expr.match(/[0-9\.\+\-\*\/\(\)]{3,}/g)||[])
+    .filter(t=>/[0-9]/.test(t)&&/[\+\-\*\/]/.test(t))
+    .sort((a,b)=>b.length-a.length)[0];
+  if(cand && /^(?:[0-9\.\+\-\*\/\(\)]+)$/.test(cand)){
+    try{ const v=Function('"use strict";return ('+cand+')')();
+      if(typeof v==='number'&&isFinite(v))
+        return '🧮 ماشین‌حساب\n▫️ عبارت: '+fa(cand)+'\n▫️ پاسخ: '+fa(Math.round(v*1e6)/1e6)+' ✅';
+    }catch(e){}
+  }
+  if(/ترجمه/.test(n)){
+    try{
+      const txt=q.replace(/ترجمه|کن|به|انگلیسی|فارسی|عربی|آلمانی|فرانسوی|ترکی/g,'').trim();
+      const r=await jgetSmart('https://api.mymemory.translated.net/get?q='+
+        encodeURIComponent(txt)+'&langpair=en|fa');
+      if(r.responseData&&r.responseData.translatedText) return '🌐 '+r.responseData.translatedText;
+    }catch(e){}
+    return '🌐 ترجمه در اینجا در دسترس نیست؛ با دکمه‌ی «ادامه در ربات» بفرستید تا ترجمه کنم 🙏';
+  }
+  const w=await wikiText(q);
+  if(w) return w;
+  const fb=(b.fallback&&b.fallback[0])||'راستش جواب دقیق این سوال را ندارم 🙏';
+  return fb+'\n───────────────\n• «آب و هوا تهران»\n• «قیمت دلار»\n• «ساعت چنده»\n💡 یا بپرسید: چه کاری می‌تونی انجام بدی؟';
+}
+async function initBrain(){
+  const log=$('#chLog'), inp=$('#chIn');
+  CHAT=[]; try{ CHAT=JSON.parse(localStorage.getItem('ch')||'[]'); }catch(e){ CHAT=[]; }
+  log.innerHTML='';
+  if(!CHAT.length){
+    chAdd('bot','سلام 🌿 من آسترا هستم؛ دستیار مؤدب و دقیق شما.\n'+
+      'هر چه بخواهید بپرسید؛ پاسخ‌هایم را تا جای ممکن از داده‌ی واقعی می‌گیرم.');
+  } else CHAT.forEach(m=>chAdd(m.who,m.text));
+  $('#chSug').innerHTML=CH_SUG.map(t=>'<span class="chip" data-q="'+t+'">'+t+'</span>').join('');
+  $$('#chSug .chip').forEach(c=>c.onclick=()=>{buzz(); inp.value=c.dataset.q; chSend();});
+  $('#chSend').onclick=chSend;
+  inp.onkeydown=e=>{ if(e.key==='Enter') chSend(); };
+  $('#chClear').onclick=()=>{ CHAT=[]; chSave(); log.innerHTML='';
+    chAdd('bot','حافظه پاک شد 🧹 بفرمایید، چه کمکی از دستم برمی‌آید؟'); };
+  $('#chBot').onclick=()=>send('ai_chat',{text:inp.value||''});
+  async function chSend(){
+    const q=(inp.value||'').trim();
+    if(!q){ toast('پیامی بنویسید'); return; }
+    inp.value=''; buzz(); chAdd('me',q);
+    const t=chTyping(true);
+    await new Promise(r=>setTimeout(r,320));
+    let ans='';
+    try{ ans=await brainAnswer(q); }
+    catch(e){ ans='⚠️ در این لحظه نتوانستم پاسخ بدهم؛ دوباره بپرسید 🙏'; }
+    chTyping(false); chAdd('bot',ans);
+  }
+}
 
 async function openTool(name){
   show('tools');
@@ -920,6 +1172,7 @@ async function openTool(name){
     if(name==='convert') initConvert();
     if(name==='clock') await initClock();
     if(name==='dooz') initDooz();
+    if(name==='brain') await initBrain();
     if(name==='anon') initAnon();
   }catch(err){ toast('خطا در بارگذاری ابزار'); }
 }

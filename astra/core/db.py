@@ -105,6 +105,9 @@ CREATE TABLE IF NOT EXISTS games (
     mode     TEXT DEFAULT 'bot',
     players  TEXT DEFAULT '{}',
     chat_id2 TEXT DEFAULT '',
+    history  TEXT DEFAULT '[]',
+    started  INTEGER DEFAULT 0,
+    first    TEXT DEFAULT 'user',
     updated  INTEGER DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS scores (
@@ -176,7 +179,25 @@ class Database:
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute("PRAGMA synchronous=NORMAL")
         self._conn.executescript(_SCHEMA)
+        self._migrate()
         self._conn.commit()
+
+    def _migrate(self) -> None:
+        """افزودن ستون‌های جدید به جداولِ دیتابیس‌های قدیمی (بدون خراب کردن داده‌ها)."""
+        wanted = {
+            "games": {"history": "TEXT DEFAULT '[]'", "started": "INTEGER DEFAULT 0",
+                      "first": "TEXT DEFAULT 'user'"},
+        }
+        for table, columns in wanted.items():
+            existing = {row["name"] for row in
+                        self._query_all(f"PRAGMA table_info({table})")}
+            for column, definition in columns.items():
+                if column not in existing:
+                    try:
+                        self._conn.execute(
+                            f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+                    except sqlite3.Error:
+                        pass
 
     # ------------------------------------------------------------------ #
     # ابزارهای داخلی
@@ -560,7 +581,11 @@ class Database:
         fields.setdefault("mode", "bot")
         fields.setdefault("players", "{}")
         fields.setdefault("chat_id2", "")
-        keys = ["kind", "board", "turn", "level", "mode", "players", "chat_id2"]
+        fields.setdefault("history", "[]")
+        fields.setdefault("started", 0)
+        fields.setdefault("first", "user")
+        keys = ["kind", "board", "turn", "level", "mode", "players", "chat_id2",
+                "history", "started", "first"]
         keys = [k for k in keys if k in fields]
         keys.append("updated")
         values = [fields[k] for k in keys[:-1]] + [_now()]

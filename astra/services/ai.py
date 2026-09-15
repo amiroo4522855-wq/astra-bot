@@ -16,17 +16,21 @@ class AIError(Exception):
     """خطای هوش مصنوعی."""
 
 
-def _headers() -> dict:
-    if not config.AI_API_KEY:
+def _headers(api_key: str = "") -> dict:
+    key = api_key or config.AI_API_KEY
+    if not key:
         raise AIError("کلید هوش مصنوعی تنظیم نشده است")
-    return {"Authorization": f"Bearer {config.AI_API_KEY}",
+    return {"Authorization": f"Bearer {key}",
             "Content-Type": "application/json"}
 
 
 def chat(messages: list[dict], temperature: float = 0.7,
-         max_tokens: int | None = None) -> str:
-    """ارسال گفتگو به مدل و دریافت پاسخ."""
-    if not config.AI_API_KEY:
+         max_tokens: int | None = None, api_key: str = "") -> str:
+    """ارسال گفتگو به مدل و دریافت پاسخ.
+
+    ‎api_key‎ می‌تواند کلیدِ شخصیِ کاربر باشد (سازگار با هر سرویس OpenAI-like).
+    """
+    if not (api_key or config.AI_API_KEY):
         raise AIError("کلید هوش مصنوعی تنظیم نشده است")
     payload = {
         "model": config.AI_MODEL,
@@ -36,7 +40,8 @@ def chat(messages: list[dict], temperature: float = 0.7,
     }
     try:
         data = request(f"{config.AI_BASE_URL.rstrip('/')}/chat/completions",
-                       method="POST", json_body=payload, headers=_headers(), timeout=90)
+                       method="POST", json_body=payload,
+                       headers=_headers(api_key), timeout=90)
     except ServiceError as exc:
         raise AIError(f"ارتباط با سرویس هوش مصنوعی برقرار نشد: {exc}") from exc
     choices = (data or {}).get("choices") or []
@@ -45,11 +50,11 @@ def chat(messages: list[dict], temperature: float = 0.7,
     return (choices[0].get("message") or {}).get("content", "").strip()
 
 
-def ask(question: str, system: str | None = None) -> str:
+def ask(question: str, system: str | None = None, api_key: str = "") -> str:
     return chat([
         {"role": "system", "content": system or config.AI_SYSTEM_PROMPT},
         {"role": "user", "content": question},
-    ])
+    ], api_key=api_key)
 
 
 def translate(text: str, target: str = "انگلیسی") -> str:

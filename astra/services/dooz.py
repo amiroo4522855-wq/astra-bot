@@ -138,25 +138,33 @@ def bot_move(board: str, level: str = "hard", ai: str = O, human: str = X) -> in
 # --------------------------------------------------------------------------- #
 # نمایش
 # --------------------------------------------------------------------------- #
-def pretty(board: str, highlight: tuple[int, int, int] | None = None) -> str:
-    """نمایش متنیِ زیبا از تابلو (برای پیام‌ها)."""
+def pretty(board: str, highlight: tuple[int, int, int] | None = None,
+           fancy: bool = True) -> str:
+    """نمایش متنیِ زیبا از تابلو (برای پیام ربات).
+
+    اگر ‎fancy‎ باشد خانه‌ها داخل کادر کشیده می‌شوند (شبیه تابلوی واقعی).
+    """
     items = cells(board)
-    rows = []
+    top, mid, bottom = "┌───┬───┬───┐", "├───┼───┼───┤", "└───┴───┴───┘"
+    rows = ["┌───┬───┬───┐" if fancy else ""]
     for row in range(3):
         parts = []
         for col in range(3):
             index = row * 3 + col
             cell = items[index]
             if highlight and index in highlight and cell != EMPTY:
-                parts.append("✨")
+                parts.append(" ✅ ")
             elif cell == X:
-                parts.append("❌")
+                parts.append(" ❌ ")
             elif cell == O:
-                parts.append("⭕️")
+                parts.append(" ⭕️ ")
             else:
-                parts.append(FA_DIGITS[index])
-        rows.append("  ".join(parts))
-    return "\n" + "\n".join(rows) + "\n"
+                parts.append(f" {FA_DIGITS[index]} ")
+        rows.append(("│" + "│".join(parts) + "│") if fancy else "  ".join(p.strip() for p in parts))
+        if row < 2:
+            rows.append(mid if fancy else "")
+    rows.append(bottom if fancy else "")
+    return "\n".join(line for line in rows if line != "")
 
 
 def board_keyboard(board: str, disabled: bool = False,
@@ -180,6 +188,25 @@ def board_keyboard(board: str, disabled: bool = False,
             line.append(btn(label, f"{prefix}:{index}" if not disabled else "dooz:info"))
         rows.append(line)
     return rows
+
+
+def apply_history(board: str, history: list[int], first: str = X) -> str:
+    """بازسازی تابلو از تاریخچه‌ی حرکت‌ها (برای برگشت و بررسی صحت)."""
+    mark = X if first == X else O
+    for index in history:
+        board = place(board, int(index), mark)
+        mark = opponent(mark)
+    return board
+
+
+def pop_moves(history: list[int], count: int = 1) -> list[int]:
+    """حذف آخرین حرکت‌ها (برای دکمه‌ی برگشت)."""
+    return list(history)[:-count] if count <= len(history) else []
+
+
+def turn_of(history: list[int], first: str = X) -> str:
+    """نوبت چه کسی است (بر اساس تاریخچه)."""
+    return first if len(history) % 2 == 0 else opponent(first)
 
 
 def status_text(board: str, level: str = "hard") -> str:
