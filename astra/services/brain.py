@@ -319,7 +319,8 @@ def analyze(text: str, memory: dict | None = None) -> dict:
                         "suggest": ["چه کاری می‌تونی انجام بدی؟", "آب و هوا تهران"]}
 
     # --- احوال‌پرسی و تعارف ---
-    if _match_any(low, GREETINGS):
+    is_translate_request = "ترجمه" in low or low.startswith("معنی ")
+    if _match_any(low, GREETINGS) and not is_translate_request:
         name = memory.get("name", "")
         reply = _pick(GREET_REPLIES)
         if random.random() < 0.5:
@@ -371,13 +372,21 @@ def analyze(text: str, memory: dict | None = None) -> dict:
                 "remember": {}, "suggest": []}
 
     # --- ترجمه ---
-    if "ترجمه" in low or low.startswith("معنی "):
+    # «معنی <واژه‌ی فارسی>» یعنی درخواستِ تعریف، نه ترجمه (به بخشِ دانش می‌رود)
+    after_meaning = normalize(raw).replace("معنی", " ").strip()
+    wants_definition = (low.startswith("معنی ") and "ترجمه" not in low
+                        and bool(after_meaning) and _is_persian(after_meaning))
+    if ("ترجمه" in low or low.startswith("معنی ")) and not wants_definition:
         target = "فارسی" if _is_persian(raw) else "انگلیسی"
+        explicit = False
         for name in LANG_CODES:
             if f"به {name}" in low or f"{name}:" in low:
-                target = name
+                target, explicit = name, True
                 break
         payload = _strip_translate(raw, target)
+        # مقصدِ ترجمه را از زبانِ «متن» بفهم، نه از کلمه‌ی «ترجمه»یِ خودِ جمله
+        if payload and not explicit:
+            target = "انگلیسی" if _is_persian(payload) else "فارسی"
         if payload:
             return {"kind": "translate", "text": "",
                     "slots": {"text": payload, "target": target},
@@ -465,6 +474,87 @@ def _topic_from_question(clean: str) -> str:
                  "بگو کی", "معنی", "لطفا", "لطفاً", "بگو", "چیه", "چی", "؟", "?"):
         topic = topic.replace(word, " ")
     return re.sub(r"\s+", " ", topic).strip()[:60]
+
+
+LANG_LABELS = ("انگلیسی", "فرانسوی", "عربی", "آلمانی", "ترکی", "روسی", "اسپانیایی",
+               "ایتالیایی", "ژاپنی", "چینی", "عبری", "یونانی", "لاتین", "اردو",
+               "کردی", "هندی", "ارمنی", "ترکی استانبولی")
+
+
+def _clean_definition(line: str) -> str:
+    """آیا این خط یک معنیِ واقعی است؟ (رد کردنِ برگردان‌ها و تلفظ‌ها)"""
+    line = (line or "").strip()
+    if len(line) < 3:
+        return ""
+    if line.startswith(LANG_LABELS):
+        return ""
+    letters = [c for c in line if c.isalpha()]
+    if not letters:
+        return ""
+    # خطوطِ فقط‌لاتین معمولاً برگردان‌اند، نه معنی
+    if all(c.isascii() for c in letters):
+        return ""
+    return line
+
+
+@lru_cache(maxsize=300)
+def meaning(word: str) -> str:
+    """معنیِ کوتاه و واقعیِ یک واژه (ویکی‌داده، در صورت نبود: ویکی‌واژه)."""
+    raw = (word or "").strip()
+    candidates = []
+    for candidate in (raw, normalize(raw)):
+        candidate = candidate.strip()
+        if len(candidate) >= 2 and candidate not in candidates:
+            candidates.append(candidate)
+
+    # ۱) توصیفِ کوتاهِ ویکی‌داده (تمیز و فارسی)
+    for query in candidates:
+        try:
+            data = request("https://fa.wikipedia.org/w/api.php",
+                           params={"action": "query", "prop": "description",
+                                   "titles": query, "format": "json"},
+                           headers=UA, timeout=12)
+            pages = ((data or {}).get("query") or {}).get("pages") or {}
+            for page in pages.values():
+                desc = (page or {}).get("description") or ""
+                if desc and "missing" not in page:
+                    return _tidy(desc, 220)
+        except Exception:
+            continue
+
+    # ۲) ویکی‌واژه: نخستین معنیِ معتبر
+    for query in candidates:
+        try:
+            data = request("https://fa.wiktionary.org/w/api.php",
+                           params={"action": "query", "prop": "extracts",
+                                   "explaintext": "1", "titles": query,
+                                   "format": "json"},
+                           headers=UA, timeout=12)
+            pages = ((data or {}).get("query") or {}).get("pages") or {}
+            for page in pages.values():
+                text = (page or {}).get("extract") or ""
+                if not text:
+                    continue
+                lines = []
+                for line in text.splitlines():
+                    line = line.strip()
+                    if not line or line.startswith("(") or line.startswith("="):
+                        if lines and line.startswith("==="):
+                            break
+                        continue
+                    if line.startswith(("منابع", "برگردان", "ریشه", "تلفظ",
+                                        "واژه‌های", "هم‌خانواده")):
+                        continue
+                    clean = _clean_definition(line)
+                    if clean:
+                        lines.append(clean)
+                    if len(lines) >= 2:
+                        break
+                if lines:
+                    return _tidy(" ".join(lines), 220)
+        except Exception:
+            continue
+    return ""
 
 
 @lru_cache(maxsize=200)

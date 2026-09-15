@@ -1109,6 +1109,8 @@ function dzDraw(){
 
 function dzCelebrate(){
   const stage=document.querySelector('.dz-stage'); if(!stage) return;
+  const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce) return;
   const box=document.createElement('div'); box.className='dz-confetti';
   const colors=['#7c5cff','#22d3ee','#ff5fa2','#ffc247','#34d399'];
   for(let i=0;i<26;i++){

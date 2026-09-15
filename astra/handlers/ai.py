@@ -185,6 +185,14 @@ def _knowledge(ctx: Context, query: str) -> str:
         return (f"📚 {query.strip()[:60]}\n{SEPARATOR}\n{summary}\n{SEPARATOR}\n"
                 + tip(note + " · برای جزئیات بیشتر، دقیق‌تر بپرسید."))
 
+    words = query.split()
+    if len(words) <= 2:
+        sense = brain.meaning(query)
+        if sense:
+            return (f"🔎 {query.strip()[:40]}\n{SEPARATOR}\n{sense}\n{SEPARATOR}\n"
+                    + tip("منبع: ویکی‌داده/ویکی‌واژه · برای توضیحِ کامل‌تر بپرسید: «درباره‌ی "
+                          + query.strip()[:24] + " توضیح بده»"))
+
     english = brain.duckduckgo(query)
     if english:
         return (f"📘 {query.strip()[:60]}\n{SEPARATOR}\n{english}\n{SEPARATOR}\n"
