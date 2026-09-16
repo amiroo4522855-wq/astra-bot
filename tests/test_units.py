@@ -794,3 +794,102 @@ class TestMessageMaker(unittest.TestCase):
         text = messages.render("tabrik", "ejtemaei", 5)
         self.assertIn("✍️", text)
         self.assertIn("───────────────", text)
+
+
+class TestMusicService(unittest.TestCase):
+    """جستجوی واقعیِ موسیقی (بدون اتکا به شبکه در تست)."""
+
+    def test_translit_persian_to_latin(self):
+        from astra.services import music
+        self.assertEqual(music.translit("ابی"), "abi")
+        self.assertTrue(music.translit("گوگوش").startswith("g"))
+
+    def test_relevant_accepts_mixed_scripts(self):
+        from astra.services import music
+        item = {"title": "Iran", "artist": "Homayoun Shajarian"}
+        self.assertTrue(music.relevant(item, "همایون شجریان"))   # فارسی ↔ لاتین
+
+    def test_relevant_rejects_unrelated(self):
+        from astra.services import music
+        item = {"title": "Cheap Thrills", "artist": "Sia"}
+        self.assertTrue(music.relevant(item, "sia"))            # تطبیقِ مستقیم
+        same = {"title": "Harighe Sabz", "artist": "Ebi"}
+        self.assertFalse(music.relevant(same, "همایون شجریان"))  # بی‌ربط
+        self.assertTrue(music.relevant(same, "ابی"))             # اسکلتِ هم‌خوان
+        self.assertTrue(music.relevant(same, "ebi"))             # تطبیقِ مستقیم
+
+    def test_merge_prefers_deezer_and_removes_duplicates(self):
+        from astra.services import music
+        calls = []
+
+        def fake_deezer(q, limit):
+            calls.append(("dz", q))
+            return [{"id": "dz-1", "title": "Harighe Sabz", "artist": "Ebi",
+                     "album": "A", "cover": "", "preview": "http://x/1.mp3",
+                     "duration": 200, "link": "", "source": "deezer",
+                     "source_name": "Deezer"}]
+
+        def fake_itunes(q, limit):
+            calls.append(("it", q))
+            return [{"id": "it-1", "title": "harighe sabz", "artist": "ebi",
+                     "album": "A", "cover": "", "preview": "http://x/2.m4a",
+                     "duration": 200, "link": "", "source": "itunes",
+                     "source_name": "Apple Music"}]
+
+        music.deezer_search = fake_deezer
+        music.itunes_search = fake_itunes
+        try:
+            rows = music._merge("ebi", 10, ("deezer", "itunes"))
+            self.assertEqual(len(rows), 1)              # تکراری حذف شد
+            self.assertEqual(rows[0]["source"], "deezer")
+        finally:
+            import importlib
+            importlib.reload(music)
+
+    def test_line_and_caption(self):
+        from astra.services import music
+        item = {"title": "Iran", "artist": "Homayoun", "album": "Iran",
+                "duration": 200, "source_name": "Deezer"}
+        self.assertIn("Iran", music.line(item, 1))
+        self.assertIn("Homayoun", music.caption(item))
+
+    def test_youtube_link_is_encoded(self):
+        from astra.services import music
+        link = music.youtube_search_link("همایون شجریان")
+        self.assertTrue(link.startswith("https://www.youtube.com/results"))
+        self.assertNotIn(" ", link)
+
+
+class TestStickerService(unittest.TestCase):
+    """ساختِ استیکر واقعی (WebP)."""
+
+    def test_text_sticker_is_webp(self):
+        from astra.services import sticker
+        data = sticker.text_sticker("تولدت مبارک", "violet")
+        self.assertGreater(len(data), 1000)
+        self.assertEqual(data[:4], b"RIFF")
+        self.assertEqual(data[8:12], b"WEBP")
+
+    def test_photo_sticker_is_square_webp(self):
+        from astra.services import sticker
+        from PIL import Image
+        import io
+        buf = io.BytesIO()
+        Image.new("RGB", (800, 600), "red").save(buf, "PNG")
+        data = sticker.photo_sticker(buf.getvalue())
+        self.assertEqual(data[8:12], b"WEBP")
+        img = Image.open(io.BytesIO(data))
+        self.assertEqual(img.size, (512, 512))
+
+    def test_styles_are_valid(self):
+        from astra.services import sticker
+        styles = sticker.styles_list()
+        self.assertGreaterEqual(len(styles), 6)
+        for key, name, preview in styles:
+            self.assertTrue(key)
+            self.assertTrue(name)
+            self.assertIn("→", preview)
+
+    def test_shape_keeps_text(self):
+        from astra.services import sticker
+        self.assertIn("آسترا", sticker.shape("آسترا"))

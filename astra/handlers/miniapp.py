@@ -264,6 +264,22 @@ def _food(ctx: Context, data: dict) -> None:
     ctx.send(recipes.render(item))
 
 
+def _sticker(ctx: Context, data: dict) -> None:
+    """ساختِ استیکر از طراحیِ مینی‌اپ."""
+    from ..services import sticker as svc
+    from .sticker import _get, _send
+    text = str(data.get("text") or "").strip()
+    style = str(data.get("style") or _get(ctx, "style", "violet"))
+    if not text:
+        ctx.send("✍️ متنی برای استیکر نوشته نشده است.")
+        return
+    try:
+        _send(ctx, svc.text_sticker(text[:160], style))
+    except Exception as exc:
+        ctx.log_error("miniapp.sticker", exc)
+        ctx.send("🙈 در ساختِ استیکر مشکلی پیش آمد 🙏")
+
+
 def _msg(ctx: Context, data: dict) -> None:
     """ارسالِ متنِ ساخته‌شده توسط پیام‌سازِ مینی‌اپ به چت."""
     from ..services import messages
@@ -369,5 +385,6 @@ ACTIONS = {
     "recipes": _food,
     "msg": _msg,
     "messages": _msg,
+    "sticker": _sticker,
     "profile": _profile,
 }

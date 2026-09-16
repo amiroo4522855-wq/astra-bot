@@ -67,10 +67,37 @@ def relevant(item: dict, query: str) -> bool:
     def has_fa(text: str) -> bool:
         return bool(re.search(r"[\u0600-\u06FF]", text or ""))
 
+    def skeleton(text: str) -> str:
+        """اسکلتِ بی‌صدایِ واژه‌ها برای مقایسه‌ی فارسی/لاتین (فاصله‌ها حفظ می‌شود)."""
+        base = translit(text) if has_fa(text) else (text or "")
+        words = re.split(r"[^a-zA-Z]+", base)
+        return " ".join(re.sub(r"[aeiou]", "", w.lower()) for w in words if w)
+
+    def sk_match(q: str, h: str) -> bool:
+        qw = [w for w in skeleton(q).split() if w] or [skeleton(q)]
+        hw = [w for w in re.split(r"[^a-z]+", h.lower()) if w]
+        hw = [re.sub(r"[aeiou]", "", w) for w in hw]
+        import difflib
+        for a in qw:
+            for b in hw:
+                if not a or not b:
+                    continue
+                if a == b:
+                    return True
+                if len(a) >= 3 and len(b) >= 3 and (a in b or b in a):
+                    return True
+                if len(a) >= 3 and len(b) >= 3:
+                    ratio = difflib.SequenceMatcher(None, a, b).ratio()
+                    if ratio >= 0.72:                 # مثل hmyvn ↔ hmyn
+                        return True
+        return False
+
     hay = f"{item.get('title', '')} {item.get('artist', '')}".lower()
-    # اگر خطِ پرسش و نتیجه متفاوت است (فارسی ↔ لاتین)، به مرتبط‌بودنِ خودِ منبع اعتماد کن
+    # خطِ پرسش و نتیجه متفاوت است (فارسی ↔ لاتین): با اسکلت مقایسه می‌کنیم
     if has_fa(query) != has_fa(hay):
-        return True
+        if not skeleton(query) or not skeleton(hay):
+            return True
+        return sk_match(query, hay)
     words = [w for w in re.split(r"[\s\-_،,()]+", (query or "").lower()) if len(w) > 2]
     if not words:
         return True

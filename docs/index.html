@@ -438,6 +438,49 @@ body.ready .hero{animation:spFade .7s var(--e) both}
  .mu-bar span{display:block;height:100%;width:0;border-radius:99px;
   background:linear-gradient(90deg,var(--a1),var(--a2));transition:width .18s linear}
  .mu-time{display:flex;justify-content:space-between;font-size:9.5px;opacity:.6;margin-top:3px}
+ /* ===== راهنما ===== */
+ .gd-hero{border-radius:22px;padding:16px 15px;margin-bottom:12px;position:relative;overflow:hidden;
+  background:linear-gradient(140deg,rgba(139,92,246,.28),rgba(34,211,238,.18));
+  border:1px solid rgba(139,92,246,.36);animation:rise .4s var(--e) both}
+ .gd-hero:before{content:'📚';position:absolute;left:-8px;bottom:-20px;font-size:80px;opacity:.12;
+  transform:rotate(-10deg)}
+ .gd-hero-in{position:relative}
+ .gd-hero h2{margin:0 0 4px;font-size:17px}
+ .gd-hero p{margin:0 0 11px;font-size:12px;opacity:.8}
+ .gd-search{position:relative}
+ .gd-search input{width:100%;padding-right:34px}
+ .gd-search span{position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  font-size:14px;opacity:.6;pointer-events:none}
+ .gd-stats{margin-top:8px;font-size:11px;opacity:.7}
+ .gd-quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+ .gd-card{border-radius:16px;padding:11px 9px;text-align:center;cursor:pointer;
+  background:var(--panel2);border:1px solid var(--line);
+  transition:transform .2s var(--e),border-color .25s,box-shadow .25s;
+  animation:rise .36s var(--e) both}
+ .gd-card:active{transform:scale(.95)}
+ .gd-card:hover{border-color:rgba(139,92,246,.5);box-shadow:0 6px 16px rgba(0,0,0,.14)}
+ .gd-ic{font-size:22px;margin-bottom:5px}
+ .gd-card b{display:block;font-size:11.5px}
+ .gd-card em{display:block;font-style:normal;font-size:9.5px;opacity:.6;margin-top:2px}
+ /* آکاردئون */
+ .gd-acc{border-radius:14px;margin-bottom:7px;overflow:hidden;background:var(--panel2);
+  border:1px solid var(--line);transition:border-color .25s}
+ .gd-acc.open{border-color:rgba(139,92,246,.45)}
+ .gd-q{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:11px 12px;cursor:pointer;font-size:12.5px;font-weight:700;transition:color .2s}
+ .gd-acc.open .gd-q{color:var(--a1)}
+ .gd-q i{font-style:normal;font-size:17px;opacity:.6;transition:transform .3s var(--e2)}
+ .gd-acc.open .gd-q i{transform:rotate(90deg);opacity:1}
+ .gd-a{max-height:0;overflow:hidden;transition:max-height .38s var(--e2)}
+ .gd-acc.open .gd-a{max-height:520px}
+ .gd-a>div{padding:0 12px 12px;font-size:12px;line-height:1.85;opacity:.86}
+ /* ===== استیکر‌ساز ===== */
+ .st-preview{margin-top:12px;display:flex;justify-content:center}
+ #stCanvas{width:min(268px,80%);height:auto;border-radius:20px;
+  box-shadow:0 14px 32px rgba(0,0,0,.32);border:1px solid var(--line);
+  animation:rise .4s var(--e) both}
+ .st-dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-left:5px;
+  vertical-align:-1px;border:1px solid rgba(255,255,255,.35)}
  .ms-lines{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:11px;
   background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:9px 11px}
  .ms-lines input[type=range]{flex:1;min-width:120px;accent-color:var(--a1)}
@@ -678,6 +721,8 @@ body.ready .hero{animation:spFade .7s var(--e) both}
   <symbol id="i-food" viewBox="0 0 24 24"><path d="M4 9h16v4a8 8 0 01-8 8 8 8 0 01-8-8V9z"/>
     <path d="M20 9.5h1.5a2 2 0 010 4H20"/><path d="M3 9.5H1.5a2 2 0 000 4H3"/>
     <path d="M9 6c0-1.2 1-1.6 1-2.5M13 6c0-1.2 1-1.6 1-2.5"/></symbol>
+  <symbol id="i-sticker" viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 3V5z"/>
+    <path d="M8.5 10.5l2.5 2.5 3-3 2.5 2.5"/></symbol>
   <symbol id="i-msg" viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 3V5z"/>
     <path d="M8 9h8M8 12h5"/></symbol>
   <symbol id="i-brain" viewBox="0 0 24 24">
@@ -758,25 +803,54 @@ body.ready .hero{animation:spFade .7s var(--e) both}
 
   <!-- راهنما -->
   <section id="page-guide" class="page hidden">
-    <div class="panel">
-      <h2><svg class="ic"><use href="#i-guide"/></svg> آموزش کار با ربات</h2>
-      <div class="step"><span class="no">۱</span><div>ربات را در تلگرام باز کن و <code>/start</code> بفرست، یا همین دکمه‌ی «✨ مینی‌اپ» را بزن.</div></div>
-      <div class="step"><span class="no">۲</span><div>از منوی اصلی یکی از ۹ بخش را انتخاب کن. همه‌جا می‌شود به‌جای دکمه، متن هم نوشت (مثل «آب و هوا سنندج»).</div></div>
-      <div class="step"><span class="no">۳</span><div>هر بخش یک راهنمای کوتاه می‌نویسد؛ ورودی را بفرست و نتیجه را همان لحظه بگیر.</div></div>
-      <div class="step"><span class="no">۴</span><div>برای کارهای سنگین (هوش مصنوعی، دانلود، موزیک) از بخش «انجام در چت ربات» استفاده کن.</div></div>
+    <div class="gd-hero">
+      <div class="gd-hero-in">
+        <h2><svg class="ic"><use href="#i-guide"/></svg> راهنمای آسترا</h2>
+        <p>هرچه لازم داری، همین‌جاست — یک جستجو کافی است ✨</p>
+        <div class="gd-search">
+          <input id="gdQ" placeholder="جستجو در راهنما… (مثلاً: آب‌وهوا، گروه، ویژه)">
+          <span>🔍</span>
+        </div>
+        <div class="gd-stats" id="gdStats"></div>
+      </div>
     </div>
-    <div class="panel">
-      <h2><svg class="ic"><use href="#i-group"/></svg> مدیریت گروه (گام‌به‌گام)</h2>
+
+    <div class="gd-quick" id="gdQuick"></div>
+
+    <div class="panel gd-panel">
+      <h2><svg class="ic"><use href="#i-home"/></svg> آموزشِ گام‌به‌گام</h2>
+      <div id="gdSteps"></div>
+    </div>
+
+    <div class="panel gd-panel">
+      <h2><svg class="ic"><use href="#i-group"/></svg> مدیریت گروه</h2>
       <div class="step"><span class="no">۱</span><div>ربات را به گروه اضافه کن و بعد آن را <b>ادمین</b> کن (دسترسی حذف پیام و بن).</div></div>
       <div class="step"><span class="no">۲</span><div>داخل گروه <code>/admin</code> را بفرست تا پنل تنظیمات باز شود.</div></div>
       <div class="step"><span class="no">۳</span><div>خوش‌آمدگویی، ضد لینک، ضد اسپم، حذف فوروارد و سقف اخطار را با یک لمس تنظیم کن.</div></div>
       <div class="step"><span class="no">۴</span><div>برای اخطار: روی پیام کاربر <b>ریپلای</b> بزن و <code>/warn</code> را بفرست. بعد از پر شدن اخطارها ربات خودکار حذفش می‌کند.</div></div>
       <div class="sec"><span class="bar pink"></span><h3>دستورات گروه</h3></div>
       <div id="groupCmds"></div>
+      <div class="empty" id="gdEmpty" hidden>چیزی پیدا نشد؛ می‌توانی از ربات بپرسی 🤖</div>
     </div>
-    <div class="panel">
+
+    <div class="panel gd-panel">
+      <h2><svg class="ic"><use href="#i-support"/></svg> پرسش‌های پرتکرار</h2>
+      <div id="gdFaq"></div>
+    </div>
+
+    <div class="panel gd-panel">
       <h2><svg class="ic"><use href="#i-ai"/></svg> همه دستورات</h2>
       <div id="allCmds"></div>
+    </div>
+
+    <div class="panel gd-panel">
+      <h2><svg class="ic"><use href="#i-support"/></svg> هنوز جوابت را نگرفتی؟</h2>
+      <p class="mut" style="margin:0 0 10px">ربات را در تلگرام باز کن و «پشتیبانی» را بزن؛
+       یا مستقیم بنویس چه می‌خواهی — آسترا متوجه می‌شود 🤖</p>
+      <div class="row">
+        <button data-send="support">💬 پشتیبانی</button>
+        <button class="ghost" data-send="help">📚 راهنمای ربات</button>
+      </div>
     </div>
   </section>
 
@@ -905,6 +979,7 @@ const TOOLS=[
  {k:'anon',i:'anon',t:'چت ناشناس 🕵️',s:'ساخت لینک امن و مخفی',c:'rgba(139,92,246,.32)'},
  {k:'recipes',i:'food',t:'آشپزی ایرانی 🍲',s:'۱۰۰ غذای اصیل با دستور کامل',c:'rgba(251,146,60,.32)'},
  {k:'msg',i:'msg',t:'پیام‌ساز ✍️',s:'تبریک، تسلیت، عاشقانه… تا ۲۰ خط',c:'rgba(244,114,182,.3)'},
+ {k:'sticker',i:'sticker',t:'استیکر‌ساز 🎨',s:'متن یا عکس → استیکر واقعی',c:'rgba(56,189,248,.3)'},
 ];
 const BOT=[
  {k:'ai',i:'ai',t:'چت هوش مصنوعی',s:'سوال بپرس'},
@@ -1021,10 +1096,104 @@ function show(tab){
   if(tg&&tg.BackButton){ if(tab==='home') tg.BackButton.hide();
     else{tg.BackButton.show(); tg.BackButton.onClick(()=>show('home'));} }
   if(tab==='me') loadMe();
+  if(tab==='guide') initGuide();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 $$('.tabs button').forEach(b=>b.onclick=()=>{buzz();show(b.dataset.tab)});
 window.addEventListener('resize',()=>show(TABS.find(t=>!$('#page-'+t).classList.contains('hidden'))));
+
+/* ================= راهنما ================= */
+const GD_QUICK=[
+ {tool:'weather',ic:'🌤',t:'آب‌وهوا',d:'۴۸۰ شهرِ ایران'},
+ {tool:'market',ic:'💱',t:'ارز و طلا',d:'نرخِ لحظه‌ای'},
+ {tool:'recipes',ic:'🍲',t:'آشپزی',d:'۱۰۰ غذای ایرانی'},
+ {tool:'msg',ic:'✍️',t:'پیام‌ساز',d:'تا ۲۰ خط'},
+ {tool:'music',ic:'🎵',t:'موسیقی',d:'جستجو و پخش'},
+ {tool:'dooz',ic:'🎮',t:'بازیِ دوز',d:'۴ سطح'},
+];
+const GD_STEPS=[
+ ['🚀 شروعِ سریع','ربات را در تلگرام باز کن و <code>/start</code> بفرست، یا دکمه‌ی «✨ مینی‌اپ» را بزن. همه‌ی ابزارها همین‌جا هستند.'],
+ ['⌨️ به‌جای دکمه بنویس','لازم نیست دنبال دکمه بگردی؛ هرچه می‌خواهی را تایپ کن: «آب و هوا سنندج»، «قیمت دلار»، «دستور پخت قورمه‌سبزی»، «یک پیام تبریک برای مژگان از امیر».'],
+ ['🎧 موسیقی و دانلود','در بخشِ موسیقی نامِ آهنگ یا خواننده را بنویس؛ نتیجه‌ی واقعی می‌آید، پخش می‌شود و می‌توانی ذخیره یا دانلودش کنی. اگر آهنگی پیدا نشود، ربات صادقانه می‌گوید «پیدا نکردم».'],
+ ['🍲 آشپزی و ✍️ پیام‌ساز','۱۰۰ غذای ایرانی با مواد و مراحلِ کامل، و پیام‌ساز با ۹ مناسبت و ۵ لحن تا ۲۰ خط — با نامِ گیرنده و فرستنده.'],
+ ['🕵️ چتِ ناشناس','یک لینکِ اختصاصی بساز و بفرست برای دوستت؛ بدونِ شماره و بدونِ نام. هر وقت خواستی می‌توانی لینک را ببندی یا یکی را مسدود کنی.'],
+ ['👑 مدیریت گروه','ربات را ادمین کن و با <code>/admin</code> ضد لینک، ضد اسپم، خوش‌آمد و سقف اخطار را تنظیم کن.'],
+];
+const GD_FAQ=[
+ ['آسترا رایگان است؟','بله؛ بیشترِ ابزارها برای همه آزاد است. بخش‌هایی مثل برخی کیفیت‌ها و امکاناتِ ویژه با اشتراکِ 💎 در دسترس‌اند.'],
+ ['چرا بعضی ابزارها در چت انجام می‌شود؟','کارهای سنگین (ساختِ تصویر، دانلود، تبدیلِ صدا) در چتِ ربات انجام می‌شود تا مینی‌اپ سبک و سریع بماند؛ نتیجه همان‌جا برایت فرستاده می‌شود.'],
+ ['موسیقی از کجا می‌آید؟','از منابعِ رسمیِ موسیقی (Apple Music در مینی‌اپ و Deezer در ربات). آنچه پخش می‌شود نسخه‌ی پیش‌نمایش است و اگر آهنگی در این منابع نباشد، می‌گوییم پیدا نشد — نتیجه‌ی ساختگی نشان نمی‌دهیم.'],
+ ['قیمتِ ارز و طلا چقدر به‌روز است؟','رباتِ ۲۴ساعته هر چند دقیقه نرخ‌ها و قیمت‌های کانال را می‌گیرد و در مینی‌اپ منتشر می‌کند؛ عددِ نمایش‌داده‌شده همان لحظه است.'],
+ ['آب‌وهوا چند شهر را پوشش می‌دهد؟','۴۸۰ شهر و ۳۱ استانِ ایران به‌همراه ۷۸ شهرِ جهان، با فشارِ هوا، سرعتِ باد، شاخصِ UV و کیفیتِ هوا.'],
+ ['چطور اشتراکِ ویژه بگیرم؟','از منوی اصلی «💎 عضویت ویژه» را بزن یا <code>/vip</code> را بفرست؛ روش‌های پرداخت همان‌جا توضیح داده شده است.'],
+ ['آیا اطلاعاتِ من ذخیره می‌شود؟','فقط چیزهای لازم (مثل تنظیمات و آمارِ استفاده) ذخیره می‌شود و گفتگوهای خصوصی نزدِ ماست محفوظ است. هر وقت خواستی می‌توانی پاکشان کنی.'],
+ ['ربات در گروه جواب نمی‌دهد؛ چه کنم؟','اول مطمئن شو ربات ادمین است. بعد <code>/admin</code> را در گروه بفرست تا پنل باز شود و تنظیمات را چک کن.'],
+ ['چطور به پشتیبانی پیام بدهم؟','در تلگرام «پشتیبانی» را بزن یا در همین راهنما دکمه‌ی «💬 پشتیبانی» را لمس کن.'],
+ ['مینی‌اپ باز نمی‌شود','اگر صفحه بالا نمی‌آید، اینترنت را چک کن و دوباره دکمه‌ی مینی‌اپ را بزن. نسخه‌ی مرورگر همیشه آخرین نسخه است.'],
+];
+
+function gdAcc(items, container, openFirst){
+  container.innerHTML=items.map((it,i)=>{
+    const q=it[0], a=it[1];
+    return '<div class="gd-acc'+(openFirst&&i===0?' open':'')+'" data-t="'+chNorm(q+' '+a)+'">'
+      +'<div class="gd-q"><span>'+q+'</span><i>›</i></div>'
+      +'<div class="gd-a"><div>'+a+'</div></div></div>';
+  }).join('');
+  container.querySelectorAll('.gd-q').forEach(h=>h.onclick=()=>{
+    buzz(); const box=h.parentElement;
+    const open=box.classList.contains('open');
+    container.querySelectorAll('.gd-acc').forEach(x=>x.classList.remove('open'));
+    if(!open) box.classList.add('open');
+  });
+}
+
+function initGuide(){
+  const quick=$('#gdQuick');
+  if(quick && !quick.dataset.ready){
+    quick.innerHTML=GD_QUICK.map(q=>'<div class="gd-card" data-tool="'+q.tool+'" data-t="'+q.t+' '+q.d+'">'
+      +'<div class="gd-ic">'+q.ic+'</div><b>'+q.t+'</b><em>'+q.d+'</em></div>').join('');
+    quick.querySelectorAll('.gd-card').forEach(el=>el.onclick=()=>{
+      buzz(); const tool=el.dataset.tool||'weather';
+      show('tools');
+      setTimeout(()=>openTool(tool), 90);
+    });
+    quick.dataset.ready='1';
+  }
+  const steps=$('#gdSteps');
+  if(steps){
+    steps.innerHTML=GD_STEPS.map((st,i)=>'<div class="gd-acc" data-t="'+chNorm(st[0]+' '+st[1])+'">'
+      +'<div class="gd-q"><span>'+st[0]+'</span><i>›</i></div>'
+      +'<div class="gd-a"><div><span class="no">'+(i+1)+'</span>'+st[1]+'</div></div></div>').join('');
+    steps.querySelectorAll('.gd-q').forEach(h=>h.onclick=()=>{buzz(); h.parentElement.classList.toggle('open');});
+  }
+  const faq=$('#gdFaq');
+  if(faq) gdAcc(GD_FAQ, faq, true);
+
+  const stats=$('#gdStats');
+  const items=$$('#page-guide .gd-acc').length;
+  if(stats) stats.textContent='▫️ '+fa(items)+' مطلبِ راهنما · '+fa(GD_QUICK.length)+' میان‌بر';
+
+  const q=$('#gdQ');
+  if(q && !q.dataset.ready){
+    q.dataset.ready='1';
+    q.oninput=()=>{
+      const key=chNorm(q.value||'').trim();
+      let shown=0;
+      $$('#page-guide .gd-acc').forEach(box=>{
+        const hit=!key || (box.dataset.t||'').indexOf(key)>=0;
+        box.style.display=hit?'':'none'; if(hit) shown++;
+      });
+      $$('#page-guide .gd-card').forEach(c=>{
+        const hit=!key || (c.dataset.t||'').indexOf(key)>=0;
+        c.style.display=hit?'':'none';
+      });
+      const st=$('#gdStats');
+      if(st) st.textContent=key? ('▫️ '+fa(shown)+' نتیجه برای «'+q.value.trim()+'»') : ('▫️ جستجو در راهنما');
+      const empty=$('#gdEmpty');
+      if(empty) empty.hidden = !(shown===0 && key);
+    };
+  }
+}
 
 /* ================= ابزارها ================= */
 const WMO={0:['آفتابی','☀️'],1:['کمی ابری','🌤'],2:['نیمه‌ابری','⛅️'],3:['ابری','☁️'],
@@ -1132,6 +1301,25 @@ const UI={
   <div class="row" id="uStyles"></div>
   <div class="row" style="margin-top:11px"><button id="uGo">✨ بساز</button></div>
   <div id="uOut"></div>`,
+
+ sticker:()=>`<h2><svg class="ic"><use href="#i-sticker"/></svg> استیکر‌ساز</h2>
+  <p class="mut" style="margin:0 0 9px">متن بنویس، سبک را انتخاب کن و ببین استیکرت همین‌جا
+   ساخته می‌شود؛ بعد می‌توانی دانلودش کنی یا برای ربات بفرستی 🎨</p>
+  <div class="row" style="gap:6px">
+   <textarea id="stText" rows="2" placeholder="متنِ استیکر…" style="flex:1"></textarea>
+  </div>
+  <div class="mut" style="margin:9px 0 5px">سبکِ پس‌زمینه:</div>
+  <div class="row" id="stStyles" style="gap:6px;flex-wrap:wrap"></div>
+  <div class="st-preview">
+   <canvas id="stCanvas" width="512" height="512"></canvas>
+  </div>
+  <div class="row" style="margin-top:10px;gap:6px">
+   <button id="stBot">📨 ساخت و فرستادن به ربات</button>
+  </div>
+  <div class="row" style="margin-top:8px;gap:6px">
+   <button class="ghost" id="stDl">⬇️ دانلود PNG</button>
+   <button class="ghost" id="stCopy">📋 کپیِ متن</button>
+  </div>`,
 
  msg:()=>`<h2><svg class="ic"><use href="#i-msg"/></svg> پیام‌ساز · متن‌های آماده</h2>
   <p class="mut" style="margin:0 0 9px">مناسبت و لحن را انتخاب کن، نام‌ها را بنویس و
@@ -1373,7 +1561,10 @@ function dzDraw(){
   turn.textContent='نوبت: شما ❌'; turn.className='dz-badge me pulse';
   const tick=()=>{ const el=$('#dzStatus'); if(!el){clearInterval(DZ.timer);return;}
     el.textContent='❌ نوبت شماست · حرکت '+fa(DZ.hist.length)+' از ۹ · ⏱ '+dzClock(); };
-  tick(); DZ.timer=setInterval(tick,1000);
+  tick(); clearInterval(DZ.timer); DZ.timer=setInterval(()=>{
+    if(!$('#dzStatus')){ clearInterval(DZ.timer); return; }
+    tick();
+  },1000);
 }
 
 function dzCelebrate(){
@@ -1770,6 +1961,7 @@ async function openTool(name){
     if(name==='namefont') initNameFont();
     if(name==='recipes') await initRecipes();
     if(name==='msg') await initMsg();
+    if(name==='sticker') initSticker();
     if(name==='qr') initQR();
     if(name==='tts') initTTS();
     if(name==='radio') initRadio();
@@ -2601,6 +2793,98 @@ async function initMsg(){
   msRender();
 }
 
+/* ---------- استیکر‌ساز ---------- */
+const ST_STYLES=[
+ {k:'violet',n:'بنفش',a:'#7c5cff',b:'#22d3ee'},
+ {k:'sunset',n:'غروب',a:'#fb923c',b:'#f472b6'},
+ {k:'mint',n:'نعنایی',a:'#34d399',b:'#22d3ee'},
+ {k:'night',n:'شب',a:'#1e1b4b',b:'#4c1d95'},
+ {k:'rose',n:'صورتی',a:'#f43f5e',b:'#fb923c'},
+ {k:'sky',n:'آسمانی',a:'#38bdf8',b:'#818cf8'},
+ {k:'gold',n:'طلایی',a:'#f59e0b',b:'#facc15'},
+ {k:'dark',n:'تیره',a:'#0f172a',b:'#1e293b'},
+];
+let ST_CUR=ST_STYLES[0];
+
+function stRoundRect(c,x,y,w,h,r){
+  c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r);
+  c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath();
+}
+function stWrap(c,text,maxW){
+  const words=String(text||'').split(/\s+/).filter(Boolean);
+  const lines=[]; let cur='';
+  for(const w of words){
+    const t=cur?cur+' '+w:w;
+    if(c.measureText(t).width<=maxW || !cur){ cur=t; } else { lines.push(cur); cur=w; }
+  }
+  if(cur) lines.push(cur);
+  return lines.slice(0,7);
+}
+function stDraw(){
+  const cv=$('#stCanvas'); if(!cv) return;
+  const c=cv.getContext('2d'); if(!c) return;
+  const S=cv.width;
+  const g=c.createLinearGradient(0,0,S,S);
+  g.addColorStop(0,ST_CUR.a); g.addColorStop(1,ST_CUR.b);
+  c.clearRect(0,0,S,S);
+  // پس‌زمینه با گوشه‌ی گرد
+  c.save(); stRoundRect(c,0,0,S,S,72); c.clip();
+  c.fillStyle=g; c.fillRect(0,0,S,S);
+  // هاله‌ی مرکزی
+  const rg=c.createRadialGradient(S/2,S*0.42,S*0.05,S/2,S*0.42,S*0.62);
+  rg.addColorStop(0,'rgba(255,255,255,.28)'); rg.addColorStop(1,'rgba(255,255,255,0)');
+  c.fillStyle=rg; c.fillRect(0,0,S,S);
+  // متن
+  const text=(($('#stText')||{}).value||'').trim()||'متنِ استیکر';
+  const maxW=S*0.80;
+  let size=92;
+  c.textAlign='center'; c.textBaseline='middle';
+  const fit=()=>{ c.font='800 '+size+'px Vazirmatn, IRANSans, Tahoma, sans-serif';
+    return stWrap(c,text,maxW); };
+  let lines=fit();
+  while(size>22 && (lines.length>5 || lines.some(l=>c.measureText(l).width>maxW))){
+    size-=3; lines=fit();
+  }
+  const lh=size*1.32, total=lh*lines.length, y0=(S-total)/2+size*0.55-14;
+  lines.forEach((ln,i)=>{
+    const y=y0+i*lh;
+    c.fillStyle='rgba(0,0,0,.30)'; c.fillText(ln,S/2+3,y+3);
+    c.fillStyle='#fff'; c.fillText(ln,S/2,y);
+  });
+  // امضا
+  c.font='600 22px Vazirmatn, Tahoma, sans-serif';
+  c.fillStyle='rgba(255,255,255,.75)';
+  c.fillText('آسترا ✨',S/2,S-52);
+  c.restore();
+}
+function initSticker(){
+  const box=$('#stStyles');
+  if(box) box.innerHTML=ST_STYLES.map(s2=>
+    '<span class="chip'+(s2.k===ST_CUR.k?' on':'')+'" data-k="'+s2.k+'">'
+    +'<i class="st-dot" style="background:linear-gradient(135deg,'+s2.a+','+s2.b+')"></i>'+s2.n+'</span>').join('');
+  if(box) box.querySelectorAll('.chip').forEach(el=>el.onclick=()=>{
+    buzz(); ST_CUR=ST_STYLES.find(x=>x.k===el.dataset.k)||ST_STYLES[0];
+    box.querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); el.classList.add('on'); stDraw();
+  });
+  const txt=$('#stText'); if(txt) txt.oninput=stDraw;
+  const dl=$('#stDl'); if(dl) dl.onclick=()=>{
+    buzz(); const cv=$('#stCanvas'); if(!cv) return;
+    const a=document.createElement('a'); a.download='astra-sticker.png';
+    a.href=cv.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove();
+    toast('⬇️ دانلود شد');
+  };
+  const cp=$('#stCopy'); if(cp) cp.onclick=()=>{
+    buzz(); copy((txt&&txt.value||'').trim()); toast('✅ متن کپی شد');
+  };
+  const bot=$('#stBot'); if(bot) bot.onclick=()=>{
+    const v=(txt&&txt.value||'').trim();
+    if(v.length<2) return toast('اول یک متن بنویس ✍️');
+    buzz(); send('sticker',{text:v.slice(0,160),style:ST_CUR.k});
+    toast('📨 فرستاده شد — استیکر در چت می‌آید');
+  };
+  stDraw();
+}
+
 /* ---------- آشپزی ایرانی ---------- */
 let RC=null, RC_CAT='all';
 async function loadRecipes(){
@@ -2904,8 +3188,12 @@ async function initClock(){
     const now=new Date();
     const iran=new Intl.DateTimeFormat('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit',
       hour12:false,timeZone:'Asia/Tehran'}).format(now);
-    const el=$('#iranClock'); if(el) el.textContent=iran;
-    $('#clkList').innerHTML = CLK_SHOWN.map(n=>{
+    const el=$('#iranClock');
+    const host=$('#clkList');
+    if(!el && !host){ clearInterval(clkTimer); return; }   // ابزار بسته شده است
+    if(el) el.textContent=iran;
+    if(!host) return;
+    host.innerHTML = CLK_SHOWN.map(n=>{
       const c=byName(n); if(!c) return '';
       const t=new Intl.DateTimeFormat('fa-IR',{hour:'2-digit',minute:'2-digit',hour12:false,
         timeZone:c.tz}).format(now);

@@ -245,6 +245,19 @@ class TelegramClient(RubikaClient):
             payload["reply_to_message_id"] = reply_to_message_id
         return self.call("sendAudio", payload)
 
+    def send_sticker_path(self, chat_id: str, path: str | Path) -> dict:
+        """ارسالِ فایلِ استیکر (WebP) از روی مسیر."""
+        target = Path(path)
+        try:
+            return self.call("sendSticker", {"chat_id": chat_id},
+                             files={"sticker": (target.name, target.read_bytes())})
+        finally:
+            if str(target).startswith(str(config.TEMP_DIR)):
+                try:
+                    target.unlink(missing_ok=True)
+                except OSError:
+                    pass
+
     def send_sticker(self, chat_id: str, sticker_id: str) -> dict:
         return self.call("sendSticker", {"chat_id": chat_id, "sticker": sticker_id})
 
