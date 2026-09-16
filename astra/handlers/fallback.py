@@ -29,10 +29,55 @@ RE_VIP = re.compile(r"(اشتراک|ویژه|vip|خرید)", re.IGNORECASE)
 RE_CITY_TIME = re.compile(r"(ساعت|تاریخ|ساعت چند)", re.IGNORECASE)
 RE_FOOD = re.compile(r"(دستور\s*پخت|طرز\s*تهیه|دستور\s*غذا|چی\s*بپزم|چی\s*درست\s*کنم|"
                      r"آشپزی|رسپی|غذای\s*ایرانی)", re.IGNORECASE)
+RE_MSG = re.compile(r"(پیام|متن|جمله|نامه)\s*(ی|\s)?\s*(تبریک|تسلیت|تشکر|قدردانی|"
+                    r"عاشقانه|دوستانه|انگیزشی|عذرخواهی|مناسبتی)", re.IGNORECASE)
 
 
 def _strip_keyword(text: str, pattern: re.Pattern) -> str:
     return clean(pattern.sub("", text, count=1))
+
+
+# --------------------------------------------------------------------------- #
+# پیام‌ساز
+# --------------------------------------------------------------------------- #
+@text(lambda ctx: bool(RE_MSG.search(ctx.text or "")))
+@guarded("nlp.msg")
+def nlp_msg(ctx: Context) -> None:
+    from ..services import messages
+    from .msgmaker import _msg_keyboard, _set
+    match = RE_MSG.search(ctx.text or "")
+    cat = messages.find_cat(match.group(3)) if match else None
+    if not cat:
+        cat = "tabrik"
+    # استخراجِ نام‌ها: «برای مژگان از امیر»
+    to = frm = ""
+    mto = re.search(r"(?:برای|به|واسه)\s+([\u0600-\u06FF]{2,20})", ctx.text or "")
+    mfr = re.search(r"(?:از\s+طرف|از)\s+([\u0600-\u06FF]{2,20})\s*$", ctx.text or "")
+    if mto:
+        to = mto.group(1).strip()
+    if mfr and mfr.group(1).strip() != to:
+        frm = mfr.group(1).strip()
+    if to:
+        _set(ctx, "to", to)
+    if frm:
+        _set(ctx, "from", frm)
+    tone = messages.DEFAULT_TONE
+    if re.search(r"(ادبی|رسمی|سنگین)", ctx.text or ""):
+        tone = "adabi"
+    elif re.search(r"(شاعرانه|شعر)", ctx.text or ""):
+        tone = "shaerane"
+    elif re.search(r"(خودمانی|صمیمی)", ctx.text or ""):
+        tone = "khodemoni"
+    elif re.search(r"(فرهنگی|رسمی)", ctx.text or ""):
+        tone = "farhangi"
+    lines = 12 if re.search(r"(بلند|طولانی|بیشتر)", ctx.text or "") else 8
+    text = messages.render(cat, tone, lines, to=to, from_=frm,
+                           poem=tone in ("adabi", "shaerane"))
+    if not text:
+        ctx.send("✍️ متنی ساخته نشد؛ دوباره تلاش کنید 🙏")
+        return
+    ctx.send(text + "\n" + SEPARATOR + "\n" + "برای تغییر از دکمه‌ها استفاده کنید 👇",
+             _msg_keyboard(cat, tone, lines, bool(to or frm)))
 
 
 # --------------------------------------------------------------------------- #

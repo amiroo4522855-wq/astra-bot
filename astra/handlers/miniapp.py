@@ -264,6 +264,20 @@ def _food(ctx: Context, data: dict) -> None:
     ctx.send(recipes.render(item))
 
 
+def _msg(ctx: Context, data: dict) -> None:
+    """ارسالِ متنِ ساخته‌شده توسط پیام‌سازِ مینی‌اپ به چت."""
+    from ..services import messages
+    text = str(data.get("text") or "").strip()
+    if not text:
+        cat = str(data.get("cat") or "tabrik")
+        tone = str(data.get("tone") or messages.DEFAULT_TONE)
+        text = messages.render(cat, tone, 8)
+    if not text:
+        ctx.send("✍️ متنی ساخته نشد؛ دوباره تلاش کنید 🙏")
+        return
+    ctx.send(text)
+
+
 def _qr(ctx: Context, data: dict) -> None:
     from .tools import qr_do
     ctx.update.text = str(data.get("text") or data.get("url") or "")
@@ -353,5 +367,7 @@ ACTIONS = {
     "anon": _anon,
     "food": _food,
     "recipes": _food,
+    "msg": _msg,
+    "messages": _msg,
     "profile": _profile,
 }

@@ -118,7 +118,7 @@ class TestFonts(unittest.TestCase):
 class TestKeyboards(unittest.TestCase):
     def test_main_menu_structure(self):
         menu = main_menu()
-        self.assertEqual(len(menu["rows"]), 6)
+        self.assertEqual(len(menu["rows"]), 7)
         for row in menu["rows"]:
             self.assertLessEqual(len(row["buttons"]), 3)
 
@@ -741,3 +741,56 @@ class TestBroadcast(unittest.TestCase):
         from astra.services.broadcast import split_markdown
         text, _ = split_markdown("**الف** و **ب**")
         self.assertNotIn("**", text)
+
+
+class TestMessageMaker(unittest.TestCase):
+    """پیام‌ساز: دسته‌ها، لحن‌ها و ساختِ متن."""
+
+    def test_data_loaded(self):
+        from astra.services import messages
+        self.assertGreaterEqual(len(messages.categories()), 5)
+        self.assertGreaterEqual(len(messages.tones()), 5)
+
+    def test_every_category_has_all_tones(self):
+        from astra.services import messages
+        data = messages.load()
+        for cid, block in (data.get("messages") or {}).items():
+            for tone in [t["id"] for t in messages.tones()]:
+                self.assertIn(tone, block["openers"], f"{cid}/{tone}")
+                self.assertIn(tone, block["closers"], f"{cid}/{tone}")
+            self.assertGreaterEqual(len(block["lines"]), 10, cid)
+
+    def test_build_respects_line_count(self):
+        from astra.services import messages
+        for n in (3, 8, 14, 20):
+            lines = messages.build("tabrik", "ejtemaei", n)
+            self.assertLessEqual(len(lines), n, f"تعداد خط برای {n}")
+            self.assertGreaterEqual(len(lines), 3)
+
+    def test_names_are_inserted(self):
+        from astra.services import messages
+        lines = messages.build("tabrik", "ejtemaei", 6, to="مژگان", from_="امیر")
+        self.assertIn("مژگان", lines[0])
+        self.assertIn("امیر", lines[-1])
+
+    def test_no_signature_without_sender(self):
+        from astra.services import messages
+        lines = messages.build("tabrik", "ejtemaei", 6, to="مژگان", from_="")
+        self.assertNotIn("{", " ".join(lines))
+
+    def test_poem_added_when_requested(self):
+        from astra.services import messages
+        lines = messages.build("asheghane", "shaerane", 16, poem=True)
+        self.assertTrue(any("«" in line for line in lines))
+
+    def test_find_category(self):
+        from astra.services import messages
+        self.assertEqual(messages.find_cat("تبریک"), "tabrik")
+        self.assertEqual(messages.find_cat("یک پیام عاشقانه"), "asheghane")
+        self.assertIsNone(messages.find_cat(""))
+
+    def test_render_has_header(self):
+        from astra.services import messages
+        text = messages.render("tabrik", "ejtemaei", 5)
+        self.assertIn("✍️", text)
+        self.assertIn("───────────────", text)

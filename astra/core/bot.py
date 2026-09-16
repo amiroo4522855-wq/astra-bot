@@ -166,6 +166,8 @@ class AstraBot:
                 {"command": "app", "description": "✨ باز کردن مینی‌اپ آسترا"},
                 {"command": "help", "description": "ℹ️ راهنما و پشتیبانی"},
                 {"command": "chat", "description": "💬 چت هوشمند — هرچه می‌خواهی بپرس"},
+                {"command": "food", "description": "🍲 آشپزی ایرانی — ۱۰۰ غذا"},
+                {"command": "msg", "description": "✍️ پیام‌ساز — تبریک، تسلیت، عاشقانه…"},
                 {"command": "dooz", "description": "❌⭕️ بازی دوز با آسترا"},
                 {"command": "anon", "description": "🕵️ چت ناشناس امن"},
                 {"command": "stop", "description": "🚪 بستن چت ناشناس"},
