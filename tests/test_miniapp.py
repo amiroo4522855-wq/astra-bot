@@ -67,6 +67,18 @@ class TestMiniApp(unittest.TestCase):
         self.assertIn('id="themeBtn"', HTML)
         self.assertIn("localStorage.setItem('theme'", SCRIPT)
 
+    def test_every_send_action_has_a_server_handler(self):
+        """هر send('x') در مینی‌اپ باید هندلر داشته باشد (هیچ بن‌بستی مجاز نیست)."""
+        import sys as _sys
+        from pathlib import Path as _P
+        root = _P(__file__).resolve().parent.parent
+        _sys.path.insert(0, str(root))
+        from astra.handlers import miniapp
+        actions = set(re.findall(r"send\(\s*'([a-z_]+)'", SCRIPT))
+        self.assertTrue(actions, "هیچ send() ای یافت نشد")
+        missing = sorted(a for a in actions if a not in miniapp.ACTIONS)
+        self.assertEqual([], missing, f"این actionها در سرور هندلر ندارند: {missing}")
+
     def test_win_line_survives_empty_winner(self):
         """خطِ پیروزی نباید هنگامِ نبودِ برنده خطا بدهد (باگِ قبلی)."""
         body = SCRIPT[SCRIPT.index("function dzWinLine("):]

@@ -140,6 +140,11 @@ svg.ic{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7;
 .card .s{font-size:10px;color:var(--mut);margin-top:3px;line-height:1.5}
 .ripple{position:absolute;border-radius:50%;transform:scale(0);background:rgba(255,255,255,.28);
  animation:rip .55s linear;pointer-events:none}
+@keyframes pgIn{from{opacity:0;transform:translateY(10px) scale(.995)}to{opacity:1;transform:none}}
+.pgIn{animation:pgIn .3s cubic-bezier(.2,.8,.2,1) both}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
 @keyframes rip{to{transform:scale(4);opacity:0}}
 
 /* پنل */
@@ -967,7 +972,7 @@ function jalaliNow(){const n=new Date();const[y,m,d]=toJalali(n.getFullYear(),n.
 
 /* ---------- داده ---------- */
 const TOOLS=[
- {k:'weather',t:'آب‌وهوا',s:'۴۱۵ شهر · ۳۱ استان',c:'rgba(34,211,238,.32)'},
+ {k:'weather',t:'آب‌وهوا',s:'۴۴۹ شهر · ۳۱ استان',c:'rgba(34,211,238,.32)'},
  {k:'market',t:'ارز و طلا',s:'قیمت واقعی تومان',c:'rgba(52,211,153,.3)'},
  {k:'crypto',t:'کریپتو',s:'لحظه‌ای + تغییرات',c:'rgba(251,191,36,.28)'},
  {k:'font',t:'فونت‌ساز',s:'۳۷ سبک · فارسی و انگلیسی',c:'rgba(244,114,182,.28)'},
@@ -1005,6 +1010,7 @@ function cardHtml(it,iconKey,idx){
     <svg class="ic"><use href="#i-${it.i||iconKey||it.k}"/></svg>
     <div class="t">${it.t}</div><div class="s">${it.s||''}</div></div>`;
 }
+const INAPP=new Set(['music','playlist','sticker','msg','recipes','dooz','anon','weather']);
 function bindCards(sel){
   $$(sel+' .card').forEach(c=>{
     c.onclick=(ev)=>{
@@ -1012,6 +1018,7 @@ function bindCards(sel){
       const k=c.dataset.act;
       if(k==='group') return show('guide');
       if(k.startsWith('send')) return openBot(k.slice(4));
+      if(INAPP.has(k)) return openTool(k);        // ابزارهایی که داخلِ اپ کامل‌اند
       if(BOT.some(b=>b.k===k)) return openBot(k);
       openTool(k);
     };
@@ -1074,6 +1081,9 @@ function themeInit(){
 
 function show(tab){
   TABS.forEach(t=>$('#page-'+t).classList.toggle('hidden',t!==tab));
+  const pg=$('#page-'+tab);
+  if(pg){ pg.classList.remove('pgIn'); void(pg.offsetWidth); pg.classList.add('pgIn'); }
+  try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){ try{window.scrollTo(0,0)}catch(_){} }
   $$('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   const ind=$('#tabInd');
   const active=$$('.tabs button').find(b=>b.dataset.tab===tab);

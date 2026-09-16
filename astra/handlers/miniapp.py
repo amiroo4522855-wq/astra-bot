@@ -294,6 +294,24 @@ def _msg(ctx: Context, data: dict) -> None:
     ctx.send(text)
 
 
+def _font(ctx: Context, data: dict) -> None:
+    """متنِ فونت‌دارِ ساخته‌شده در مینی‌اپ را به چت می‌فرستد."""
+    text = str(data.get("text") or "").strip("\n")
+    if not text:
+        ctx.send("🔤 متنی ساخته نشد؛ داخلِ مینی‌اپ یکی از سبک‌ها را انتخاب کن 🙏\n"
+                 f"{SEPARATOR}\n"
+                 "راهنمایی: مینی‌اپ ← ابزارها ← فونت‌ساز")
+        return
+    ctx.send(
+        "🔤 متنِ فونت‌دارِ شما آماده است:\n"
+        f"{SEPARATOR}\n"
+        f"{truncate(text, 1200)}\n"
+        f"{SEPARATOR}\n"
+        "کافی است روی متن بزنی و «کپی» را بزنی ✨",
+        kb().row(btn("🔤 فونت‌ساز", "app:open")).row(btn("🏠 منوی اصلی", "nav:home")).build(),
+    )
+
+
 def _qr(ctx: Context, data: dict) -> None:
     from .tools import qr_do
     ctx.update.text = str(data.get("text") or data.get("url") or "")
@@ -384,6 +402,9 @@ ACTIONS = {
     "food": _food,
     "recipes": _food,
     "msg": _msg,
+    "font": _font,
+    "fontmaker": _font,
+    "namefont": _font,
     "messages": _msg,
     "sticker": _sticker,
     "profile": _profile,
