@@ -43,9 +43,10 @@ echo "✅ پوش انجام شد: $(git log --oneline -1)"
 # ۵) لغوِ اجراهای قدیمی و راه‌اندازیِ ربات ۲۴ساعته
 API="https://api.github.com/repos/$REPO"
 AUTH=(-H "Authorization: Bearer $(cat "$TOKEN_FILE")" -H "Accept: application/vnd.github+json")
+# فقط اجرای قبلیِ رباتِ ۲۴ساعته لغو می‌شود (اجرای CI/Testها دست‌نخورده می‌ماند)
 for RUN in $(curl -s "${AUTH[@]}" "$API/actions/runs?status=in_progress&per_page=20" \
-             | python3 -c "import sys,json;print(' '.join(str(r['id']) for r in json.load(sys.stdin).get('workflow_runs',[])))"); do
-  curl -s -X POST "${AUTH[@]}" "$API/actions/runs/$RUN/cancel" >/dev/null && echo "▫️ اجرای $RUN لغو شد"
+             | python3 -c "import sys,json;print(' '.join(str(r['id']) for r in json.load(sys.stdin).get('workflow_runs',[]) if r['name']=='Astra Bot 24x7'))"); do
+  curl -s -X POST "${AUTH[@]}" "$API/actions/runs/$RUN/cancel" >/dev/null && echo "▫️ اجرای قبلیِ ربات ($RUN) لغو شد"
 done
 curl -s -X POST "${AUTH[@]}" "$API/actions/workflows/$WORKFLOW/dispatches" \
      -d '{"ref":"main"}' >/dev/null && echo "✅ ربات ۲۴ساعته راه‌اندازی شد"
