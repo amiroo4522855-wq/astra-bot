@@ -64,6 +64,12 @@ def _menu(ctx: Context) -> dict:
 @command("/sticker", "/stikcer")
 @route("menu:sticker")
 def sticker_menu(ctx: Context) -> None:
+    if not svc.available():
+        ctx.send("🎨 بخشِ استیکر‌ساز فعلاً روی این سرور در دسترس نیست 🙏\n"
+                 f"{SEPARATOR}\n"
+                 "بقیه‌ی بخش‌ها مثل همیشه کار می‌کنند ✨",
+                 kb().row(btn("🏠 منوی اصلی", "nav:home")).build())
+        return
     ctx.send(
         "🎨 استیکر‌سازِ آسترا\n"
         f"{SEPARATOR}\n"
@@ -91,6 +97,9 @@ def sticker_text(ctx: Context) -> None:
 def sticker_text_make(ctx: Context) -> None:
     text = (ctx.text or "").strip()
     ctx.state = ""
+    if not svc.available():
+        ctx.send("🎨 استیکر‌ساز روی این سرور فعال نیست 🙏")
+        return
     if text in ("لغو", "/cancel", "❌ انصراف"):
         ctx.send("لغو شد 🙏", _menu(ctx))
         return

@@ -6,7 +6,12 @@ import re
 from functools import lru_cache
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+try:                                    # Pillow اختیاری است؛ نبودش ربات را نمی‌شکند
+    from PIL import Image, ImageDraw, ImageFilter, ImageFont
+    PILLOW = True
+except ImportError:                     # نصب: pip install Pillow arabic-reshaper python-bidi
+    Image = ImageDraw = ImageFilter = ImageFont = None
+    PILLOW = False
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 FONT_DIR = ROOT / "assets" / "fonts"
@@ -104,8 +109,15 @@ def _rounded(img: Image.Image, radius: int = 64) -> Image.Image:
     return out
 
 
+def available() -> bool:
+    """آیا امکانِ ساختِ استیکر وجود دارد؟"""
+    return bool(PILLOW)
+
+
 def text_sticker(text: str, style: str = "violet", emoji: str = "") -> bytes:
     """ساختِ استیکرِ متنی (خروجی WebP)."""
+    if not PILLOW:
+        raise RuntimeError("Pillow نصب نیست؛ pip install Pillow")
     text = (text or "").strip()
     if not text:
         text = "آسترا ✨"
@@ -156,6 +168,8 @@ def text_sticker(text: str, style: str = "violet", emoji: str = "") -> bytes:
 
 def photo_sticker(data: bytes) -> bytes:
     """تبدیلِ عکس به استیکرِ چهارگوشِ ۵۱۲ در ۵۱۲."""
+    if not PILLOW:
+        raise RuntimeError("Pillow نصب نیست؛ pip install Pillow")
     img = Image.open(io.BytesIO(data)).convert("RGBA")
     img.thumbnail((SIZE, SIZE), Image.LANCZOS)
     canvas = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))

@@ -863,6 +863,11 @@ class TestMusicService(unittest.TestCase):
 class TestStickerService(unittest.TestCase):
     """ساختِ استیکر واقعی (WebP)."""
 
+    def setUp(self):
+        from astra.services import sticker
+        if not sticker.available():
+            self.skipTest("Pillow نصب نیست")
+
     def test_text_sticker_is_webp(self):
         from astra.services import sticker
         data = sticker.text_sticker("تولدت مبارک", "violet")
