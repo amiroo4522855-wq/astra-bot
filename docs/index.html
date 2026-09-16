@@ -1284,7 +1284,7 @@ const UI={
   <div class="row" style="gap:6px;margin-bottom:9px">
    <button class="ghost" id="plPlayAll">▶️ پخشِ همه</button>
    <button class="ghost" id="plClear">🗑 پاک کردن</button>
-   <button class="ghost" id="plSend">📨 فرستادن به ربات</button>
+   <button class="ghost" id="plSend">📨 همگام‌سازی با ربات</button>
   </div>
   <div id="plList"></div>
   <audio id="plAudio" preload="none"></audio>`,
@@ -2476,7 +2476,8 @@ function initPlaylist(){
   const cl=$('#plClear'); if(cl) cl.onclick=()=>{ buzz(); plSave([]); draw(); toast('پاک شد 🗑'); };
   const sd=$('#plSend'); if(sd) sd.onclick=()=>{
     const rows=plGet(); if(!rows.length) return toast('لیست خالی است 🎶');
-    buzz(); send('playlist',{items:rows.slice(0,40).map(t=>t.title+' — '+t.artist)});
+    buzz(); send('playlist',{items:rows.slice(0,40).map(t=>({
+      title:t.title||'', artist:t.artist||'', url:t.preview||t.url||''}))});
   };
   draw();
 }

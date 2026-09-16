@@ -346,8 +346,38 @@ def _sticker(ctx: Context, data: dict) -> None:
 
 
 def _playlist(ctx: Context, data: dict) -> None:
-    from .music import music_playlist
-    music_playlist(ctx)
+    """همگام‌سازیِ پلی‌لیستِ مینی‌اپ با ربات (و برعکس)."""
+    items = data.get("items") or []
+    if not items:                                   # بدون داده = فقط نمایشِ لیست
+        from .music import music_playlist
+        music_playlist(ctx)
+        return
+
+    added = 0
+    for row in items[:40]:
+        if not isinstance(row, dict):
+            title, _, artist = str(row).partition(" — ")
+            row = {"title": title, "artist": artist, "url": ""}
+        title = str(row.get("title") or "").strip()[:120]
+        if not title:
+            continue
+        artist = str(row.get("artist") or "").strip()[:80]
+        url = str(row.get("url") or "").strip()[:400]
+        if ctx.db.playlist_add(ctx.sender_id, title, artist, url):
+            added += 1
+    if not added:
+        ctx.send("🎧 آهنگِ جدیدی برای افزودن پیدا نکردم (شاید قبلاً ذخیره شده باشد) 🙏",
+                 kb().row(btn("🎧 پلی‌لیست من", "music:playlist"),
+                          btn("🏠 منوی اصلی", "nav:home")).build())
+        return
+    ctx.send(
+        f"✅ {en_to_fa(added)} آهنگ به پلی‌لیستِ ربات اضافه شد 🎧\n"
+        f"{SEPARATOR}\n"
+        "از اینجا می‌توانی در خودِ تلگرام گوش کنی:\n"
+        "منوی اصلی ← 🎵 موزیک ← 🎧 پلی‌لیست من",
+        kb().row(btn("🎧 پلی‌لیست من", "music:playlist"),
+                 btn("🏠 منوی اصلی", "nav:home")).build(),
+    )
 
 
 def _group(ctx: Context, data: dict) -> None:

@@ -146,17 +146,24 @@ def music_get(ctx: Context) -> None:
 def send_track(ctx: Context, item: dict, index: int = -1) -> None:
     """ارسالِ آهنگ به‌صورتِ فایلِ صوتیِ واقعی (بدون دانلود روی سرور)."""
     if not ctx.consume("music"):
-        from .vip import upgrade_keyboard
         text, keyboard = ctx.limit_message("music")
         ctx.send(text, keyboard)
         return
+
     audio = music_svc.best_audio(item)
     if not audio:
-        ctx.send("🎧 متأسفم، فایلِ قابل‌پخش این آهنگ در دسترس نیست 🙏",
-                 kb().row(btn("🔍 جستجوی جدید", "music:search")).nav().build())
+        ctx.send(
+            "🎧 متأسفم، فایلِ قابل‌پخش این آهنگ در دسترس نیست 🙏\n"
+            f"{SEPARATOR}\n"
+            f"🔗 لینکِ آهنگ: {item.get('link') or '—'}",
+            kb().row(btn("🔍 جستجوی جدید", "music:search"),
+                     btn("🎵 بخش موزیک", "menu:music")).nav().build(),
+        )
         return
+
     ctx.send("⏳ دارم برات می‌فرستم… 🎵")
     caption = music_svc.caption(item) + "\n" + SEPARATOR + "\n✨ آسترا"
+    sent = False
     try:
         ctx.client.send_audio_url(
             chat_id=ctx.chat_id, audio_url=audio,
@@ -164,19 +171,56 @@ def send_track(ctx: Context, item: dict, index: int = -1) -> None:
             performer=(item.get("artist") or "")[:64],
             caption=caption,
         )
-        keyboard = (
-            kb()
-            .row(btn("⬇️ لینکِ دانلود", f"music:link:{index}"),
-                 btn("➕ پلی‌لیست", f"music:pladd:{index}"))
-            .row(btn("🎧 نسخه‌ی کامل در یوتیوب", "music:yt") ,
-                 btn("🔍 جستجوی جدید", "music:search"))
-            .nav()
+        sent = True
+    except Exception:
+        sent = False
+
+    if not sent:                                  # مسیرِ جایگزین: لینکِ مستقیم
+        ctx.send(
+            "🎧 فایل رو نتونستم مستقیم بفرستم؛ با این لینک گوش کن 👇\n"
+            f"{SEPARATOR}\n{audio}\n{SEPARATOR}\n"
+            "✨ آسترا",
+            kb().row(btn("➕ پلی‌لیست", f"music:pladd:{index}"),
+                     btn("🔍 جستجوی جدید", "music:search")).nav().build(),
         )
-        ctx.client.send_file(ctx.chat_id, file_id,
-                             caption=caption,
-                             file_type=file_type, inline_keypad=keyboard.build())
-    finally:
-        media.cleanup(path)
+        return
+
+    keyboard = (
+        kb()
+        .row(btn("⬇️ لینکِ دانلود", f"music:link:{index}"),
+             btn("➕ افزودن به پلی‌لیست", f"music:pladd:{index}"))
+        .row(btn("🎧 پلی‌لیست من", "music:playlist"),
+             btn("🔍 جستجوی جدید", "music:search"))
+        .nav()
+    )
+    ctx.send("🎵 آماده شد! چی کارش کنم؟ 👇", keyboard.build())
+
+
+@route("music:link", prefix=True)
+@guarded("music.link")
+def music_link(ctx: Context) -> None:
+    """فرستادنِ لینکِ مستقیمِ آهنگ (پشتیبانِ دکمه‌ی دانلود)."""
+    _, data = ctx.get_state()
+    results = data.get("results") or []
+    try:
+        index = int(ctx.arg or "0")
+    except ValueError:
+        index = 0
+    item = results[index] if 0 <= index < len(results) else None
+    if not item:
+        ctx.answer("🤔 این نتیجه دیگه معتبر نیست؛ یک جستجوی تازه انجام بده 👇",
+                   kb().row(btn("🔍 جستجوی جدید", "music:search"),
+                            btn("🎵 بخش موزیک", "menu:music")).build())
+        return
+    audio = music_svc.best_audio(item) or item.get("link") or ""
+    ctx.answer(
+        f"🔗 لینکِ مستقیمِ «{item.get('title', 'آهنگ')}»\n"
+        f"{SEPARATOR}\n{audio}\n{SEPARATOR}\n"
+        f"👤 {item.get('artist') or 'نامشخص'} · {item.get('source_name') or ''}\n"
+        + tip("روی لینک بزن تا پخش یا دانلود شود 🎧"),
+        kb().row(btn("➕ پلی‌لیست", f"music:pladd:{index}"),
+                 btn("🔍 جستجوی جدید", "music:search")).nav().build(),
+    )
 
 
 @route("music:similar", prefix=True)
@@ -191,7 +235,7 @@ def music_similar(ctx: Context) -> None:
     if not results or index >= len(results):
         go(ctx, "music:search")
         return
-    query = f"{results[index]['uploader']} موزیک مشابه"
+    query = f"{results[index].get('artist') or ''} موزیک مشابه".strip()
     ctx.update.text = query
     do_music_search(ctx)
 
@@ -221,7 +265,19 @@ def do_music_url(ctx: Context) -> None:
         ctx.send("🔗 این که لینک نیست!\nیک لینک معتبر یوتیوب بفرست 🙏")
         return
     ctx.clear_state()
-    send_track(ctx, url, "آهنگ درخواستی", "یوتیوب")
+    if "youtu" in url:
+        ctx.send(
+            "🎬 لینکِ یوتیوب\n"
+            f"{SEPARATOR}\n{url}\n{SEPARATOR}\n"
+            "برای گرفتنِ فایلِ صوتی، لینک را داخلِ مینی‌اپ در «دانلودر» بگذار؛\n"
+            "یا اسمِ آهنگ را اینجا بنویس تا خودم پیداش کنم 🎧",
+            kb().row(btn("✨ باز کردنِ مینی‌اپ", "app:open"),
+                     btn("🔍 جستجوی آهنگ", "music:search"),
+                     btn("🎵 بخش موزیک", "menu:music")).build(),
+        )
+        return
+    send_track(ctx, {"title": "آهنگ درخواستی", "artist": "", "preview": url,
+                     "link": url, "duration": 0, "source_name": "لینک مستقیم"})
 
 
 # --------------------------------------------------------------------------- #
@@ -257,9 +313,12 @@ def music_playlist(ctx: Context) -> None:
     for index, item in enumerate(items[:20], start=1):
         lines.append(f"{en_to_fa(index)}. {item['title']} — {item.get('artist') or 'نامشخص'}")
     keyboard = kb()
+    keyboard.grid([(f"▶️ {en_to_fa(i + 1)}", f"music:plplay:{item['id']}")
+                   for i, item in enumerate(items[:9])], per_row=3)
     keyboard.grid([(f"❌ {en_to_fa(i + 1)}", f"music:pldel:{item['id']}")
-                   for i, item in enumerate(items[:12])], per_row=3)
-    keyboard.row(btn("🧹 پاک کردن لیست", "music:plclear"))
+                   for i, item in enumerate(items[:9])], per_row=3)
+    keyboard.row(btn("🧹 پاک کردن لیست", "music:plclear"),
+                 btn("🔍 جستجوی آهنگ", "music:search"))
     keyboard.nav()
     ctx.answer("\n".join(lines), keyboard.build())
 
@@ -275,8 +334,9 @@ def playlist_add(ctx: Context) -> None:
     if ctx.arg == "all":
         added = 0
         for item in results:
-            if ctx.db.playlist_add(ctx.sender_id, item["title"], item.get("uploader", ""),
-                                   item["url"]):
+            if ctx.db.playlist_add(ctx.sender_id, item.get("title", ""),
+                                   item.get("artist", ""),
+                                   music_svc.best_audio(item) or item.get("link") or ""):
                 added += 1
         ctx.answer(f"✅ {en_to_fa(added)} آهنگ به پلی‌لیست اضافه شد 🎧")
         return
@@ -285,7 +345,8 @@ def playlist_add(ctx: Context) -> None:
     except ValueError:
         index = 0
     item = results[min(index, len(results) - 1)]
-    ok = ctx.db.playlist_add(ctx.sender_id, item["title"], item.get("uploader", ""), item["url"])
+    ok = ctx.db.playlist_add(ctx.sender_id, item.get("title", ""), item.get("artist", ""),
+                             music_svc.best_audio(item) or item.get("link") or "")
     ctx.answer("✅ به پلی‌لیست اضافه شد 🎧" if ok else "⚠️ ظرفیت پلی‌لیست پر شده!",
                kb().row(btn("🎧 پلی‌لیست من", "music:playlist"),
                         btn("🏠 منوی اصلی", "nav:home")).build())
@@ -301,6 +362,30 @@ def playlist_delete(ctx: Context) -> None:
         return
     ctx.db.playlist_remove(ctx.sender_id, item_id)
     music_playlist(ctx)
+
+
+@route("music:plplay", prefix=True)
+@guarded("music.plplay")
+def playlist_play(ctx: Context) -> None:
+    """پخشِ یکی از آهنگ‌های ذخیره‌شده در پلی‌لیست."""
+    try:
+        item_id = int(ctx.arg or "0")
+    except ValueError:
+        ctx.answer("⚠️ مورد نامعتبر است.")
+        return
+    item = next((i for i in ctx.db.playlist_list(ctx.sender_id) if i["id"] == item_id), None)
+    if not item:
+        ctx.answer("🤔 این آهنگ دیگر در لیست نیست.",
+                   kb().row(btn("🎧 پلی‌لیست من", "music:playlist")).build())
+        return
+    send_track(ctx, {
+        "title": item.get("title") or "آهنگ",
+        "artist": item.get("artist") or "",
+        "preview": item.get("url") or "",
+        "link": item.get("url") or "",
+        "duration": 0,
+        "source_name": "پلی‌لیست من",
+    })
 
 
 @route("music:plclear")

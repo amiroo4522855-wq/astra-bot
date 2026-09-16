@@ -860,6 +860,133 @@ class TestMusicService(unittest.TestCase):
         self.assertNotIn(" ", link)
 
 
+class TestMusicFlow(unittest.TestCase):
+    """مسیرِ کاملِ موزیک در ربات: جستجو → انتخاب → ارسال → پلی‌لیست.
+
+    این تست‌ها همان باگی را می‌گیرند که قبلاً وجود داشت: send_track به
+    متغیرهای تعریف‌نشده (file_id / path) اشاره می‌کرد و آهنگ هرگز فرستاده نمی‌شد.
+    """
+
+    def setUp(self):
+        import tempfile
+        from astra.core.db import Database
+        from astra.handlers import music as h
+        self.h = h
+        self.tmp = tempfile.mkdtemp()
+        self.db = Database(Path(self.tmp) / "t.db")
+        self.sent_audio = []
+        self.messages = []
+        self.errors = []
+
+        class FakeClient:
+            platform = "telegram"
+            def __init__(outer): pass
+            def send_audio_url(outer, **kw): self.sent_audio.append(kw); return {"ok": True}
+
+        class Upd:
+            text = ""
+        class Ctx:
+            def __init__(outer):
+                outer.client = FakeClient()
+                outer.db = self.db
+                outer.chat_id = "1"
+                outer.sender_id = "u1"
+                outer.is_vip = False
+                outer.text = ""
+                outer.arg = "0"
+                outer.update = Upd()
+                outer._state = ("music_pick", {"results": [self.TRACK], "query": "abi"})
+            def log_error(outer, where, exc): self.errors.append(f"{where}: {exc}")
+            def consume(outer, key): return True
+            def send(outer, text, keyboard=None, **kw): self.messages.append(text)
+            def answer(outer, text, keyboard=None, **kw): self.messages.append(text)
+            def get_state(outer): return outer._state
+            def set_state(outer, name, data=None): outer._state = (name, data or {})
+            def clear_state(outer): outer._state = ("", {})
+        self.ctx = Ctx()
+
+    TRACK = {"id": "dz-1", "title": "Harighe Sabz", "artist": "Ebi", "album": "A",
+             "cover": "", "preview": "http://x/1.mp3", "duration": 200,
+             "link": "http://x/page", "source": "deezer", "source_name": "Deezer"}
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_send_track_sends_real_audio(self):
+        self.h.send_track(self.ctx, dict(self.TRACK), 0)
+        self.assertEqual(1, len(self.sent_audio), "هیچ فایل صوتی فرستاده نشد")
+        kw = self.sent_audio[0]
+        self.assertEqual("http://x/1.mp3", kw["audio_url"])
+        self.assertEqual("Harighe Sabz", kw["title"])
+        self.assertEqual("Ebi", kw["performer"])
+        self.assertIn("Ebi", kw["caption"])
+
+    def test_send_track_falls_back_to_link_when_upload_fails(self):
+        class Boom:
+            platform = "telegram"
+            def send_audio_url(self, **kw): raise RuntimeError("boom")
+        self.ctx.client = Boom()
+        self.h.send_track(self.ctx, dict(self.TRACK), 0)
+        self.assertTrue(any("http://x/1.mp3" in m for m in self.messages),
+                        "در صورت خطا باید لینک فرستاده شود")
+
+    def test_link_button_route_exists_and_answers(self):
+        self.h.music_link(self.ctx)
+        self.assertTrue(any("http://x/1.mp3" in m for m in self.messages))
+
+    def test_add_to_playlist_then_play_it(self):
+        self.h.playlist_add(self.ctx)
+        items = self.db.playlist_list("u1")
+        self.assertEqual(1, len(items), "آهنگ به پلی‌لیست اضافه نشد")
+        self.assertEqual("Ebi", items[0]["artist"])
+        self.assertIn("http://x/1.mp3", items[0]["url"])
+        self.ctx.arg = str(items[0]["id"])
+        self.h.playlist_play(self.ctx)
+        self.assertEqual(1, len(self.sent_audio), "پخش از پلی‌لیست کار نکرد")
+
+    def test_youtube_link_does_not_crash(self):
+        self.ctx.text = "https://youtu.be/dQw4w9WgXcQ"
+        self.h.do_music_url(self.ctx)
+        self.assertEqual([], self.errors, "خطا در مسیرِ لینک یوتیوب")
+        self.assertTrue(any("youtu.be" in m for m in self.messages),
+                        "لینک یوتیوب باید در پاسخ باشد")
+
+    def test_similar_uses_artist_key(self):
+        from astra.services import music as svc
+        real = svc.search
+        svc.search = lambda q, limit=8: []            # بدون شبکه
+        try:
+            self.h.music_similar(self.ctx)
+        finally:
+            svc.search = real
+        self.assertEqual([], self.errors, "مسیرِ «مشابه» خطا داد (کلیدِ artist)")
+
+    def test_miniapp_playlist_sync_is_playable(self):
+        """لیستی که مینی‌اپ می‌فرستد باید در ربات ذخیره و قابلِ پخش باشد."""
+        from astra.handlers import miniapp
+        miniapp._playlist(self.ctx, {"items": [
+            {"title": "Harighe Sabz", "artist": "Ebi", "url": "http://x/1.mp3"},
+            {"title": "Gol-e Yakh", "artist": "Kourosh", "url": ""},
+            "بدون ساختار — خواننده",
+        ]})
+        items = self.db.playlist_list("u1")
+        self.assertEqual(3, len(items), "همه‌ی ردیف‌ها باید ذخیره شوند")
+        by_url = [i for i in items if i["url"]]
+        self.assertEqual(1, len(by_url))
+        self.ctx.arg = str(by_url[0]["id"])
+        self.h.playlist_play(self.ctx)
+        self.assertEqual(1, len(self.sent_audio), "آهنگِ همگام‌شده پخش نشد")
+
+    def test_no_handler_error_anywhere(self):
+        """هیچ‌کدام از این مسیرها نباید وارد fail() شوند."""
+        self.h.send_track(self.ctx, dict(self.TRACK), 0)
+        self.h.music_link(self.ctx)
+        self.h.playlist_add(self.ctx)
+        self.h.playlist_play(self.ctx)
+        self.assertEqual([], self.errors, "خطای پنهان در handlerهای موزیک")
+
+
 class TestStickerService(unittest.TestCase):
     """ساختِ استیکر واقعی (WebP)."""
 
