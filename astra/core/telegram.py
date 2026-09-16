@@ -230,6 +230,21 @@ class TelegramClient(RubikaClient):
         path = result.get("file_path") or ""
         return f"{TELEGRAM_API}/file/bot{self.token}/{path}" if path else ""
 
+    def send_audio_url(self, chat_id: str, audio_url: str, title: str = "",
+                       performer: str = "", caption: str = "",
+                       reply_to_message_id: str | None = None) -> dict:
+        """ارسالِ فایلِ صوتی از روی لینک (بدون دانلود روی سرور)."""
+        payload: dict[str, Any] = {"chat_id": chat_id, "audio": audio_url}
+        if title:
+            payload["title"] = title[:64]
+        if performer:
+            payload["performer"] = performer[:64]
+        if caption:
+            payload["caption"] = caption[:1024]
+        if reply_to_message_id:
+            payload["reply_to_message_id"] = reply_to_message_id
+        return self.call("sendAudio", payload)
+
     def send_sticker(self, chat_id: str, sticker_id: str) -> dict:
         return self.call("sendSticker", {"chat_id": chat_id, "sticker": sticker_id})
 

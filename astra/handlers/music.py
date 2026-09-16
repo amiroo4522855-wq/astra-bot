@@ -9,7 +9,8 @@ from ..core.context import Context
 from ..core.keyboards import btn, kb, main_menu
 from ..core.router import route, state
 from ..core.utils import SEPARATOR, en_to_fa, format_duration
-from ..services import media, radio, tts
+from ..services import media
+from ..services import music as music_svc, radio, tts
 from .common import enter, fail, go, guarded, header, section_closed, tip
 
 RANDOM_QUERIES = [
@@ -90,16 +91,18 @@ def do_music_search(ctx: Context) -> None:
         return
 
     ctx.send(f"🔎 دارم «{query}» رو می‌گردم… کمی صبر کن ⏳")
-    results = media.search(query, limit=5)
+    results = music_svc.search(query, limit=8)
     if not results:
         ctx.send(
-            "🤷‍♂️ چیزی پیدا نکردم!\n"
+            "🤷‍♂️ آهنگی با این اسم پیدا نکردم!\n"
             f"{SEPARATOR}\n"
-            "احتمالاً اسم رو اشتباه نوشتی.\n"
-            "یه بار دیگه با اسم دقیق‌تر امتحان کن.\n"
+            "من موسیقی را از منابعِ واقعی (Deezer و Apple Music) می‌گردم.\n"
+            "اگر اسم را فارسی نوشتی، یک بار با انگلیسی امتحان کن\n"
+            "مثال: «Ebi» یا «Googoosh»\n"
             f"{SEPARATOR}\n"
-            f"🔗 جستجو در یوتیوب: {media.youtube_search_link(query)}",
+            f"🔗 جستجو در یوتیوب: {music_svc.youtube_search_link(query)}",
             kb().row(btn("🔄 جستجوی جدید", "music:search"),
+                     btn("✨ جستجو در مینی‌اپ", "app:open"),
                      btn("🔙 بازگشت", "nav:back")).build(),
         )
         return
@@ -109,7 +112,7 @@ def do_music_search(ctx: Context) -> None:
     for index, item in enumerate(results):
         duration = format_duration(int(item.get("duration") or 0))
         lines.append(f"{en_to_fa(index + 1)}. {item['title']}")
-        lines.append(f"    👤 {item['uploader']} · ⏱ {duration}")
+        lines.append(f"    👤 {item['artist']} · ⏱ {duration} · {item['source_name']}")
     lines.append(SEPARATOR)
     lines.append(tip("روی شماره‌ی آهنگ بزن تا برات بفرستمش 🎵"))
 
@@ -137,40 +140,36 @@ def music_get(ctx: Context) -> None:
                             btn("🏠 منوی اصلی", "nav:home")).build())
         return
     item = results[index]
-    send_track(ctx, item["url"], item["title"], item.get("uploader", ""), index)
+    send_track(ctx, item, index)
 
 
-def send_track(ctx: Context, url: str, title: str, uploader: str = "", index: int = -1) -> None:
-    """دانلود و ارسال یک آهنگ با دکمه‌های بعدی."""
+def send_track(ctx: Context, item: dict, index: int = -1) -> None:
+    """ارسالِ آهنگ به‌صورتِ فایلِ صوتیِ واقعی (بدون دانلود روی سرور)."""
     if not ctx.consume("music"):
         from .vip import upgrade_keyboard
         text, keyboard = ctx.limit_message("music")
         ctx.send(text, keyboard)
         return
-    ctx.send("⏳ دارم دانلود می‌کنم… چند لحظه صبر کن 🎵")
-    quality = user_quality(ctx)
-    # نوع خروجی: صدا (پیش‌فرض) یا ویدیو — از مینی‌اپ هم قابل انتخاب است
-    kind = ctx.db.get_setting(f"music_kind:{ctx.sender_id}", "") or "audio"
-    if kind == "video":
-        height = 1080 if ctx.is_vip else 720
-        path = media.download_video(url, max_height=height)
-        file_type = "Video"
-        caption = (f"🎬 {title}\n👤 {uploader}\n📺 کیفیت: {height}p\n"
-                   f"✨ آسترا")
-    else:
-        path = media.download_audio(url, bitrate=quality)
-        file_type = "Music"
-        caption = (f"🎵 {title}\n👤 {uploader}\n🎚 کیفیت: {quality} kbps\n"
-                   f"✨ آسترا")
+    audio = music_svc.best_audio(item)
+    if not audio:
+        ctx.send("🎧 متأسفم، فایلِ قابل‌پخش این آهنگ در دسترس نیست 🙏",
+                 kb().row(btn("🔍 جستجوی جدید", "music:search")).nav().build())
+        return
+    ctx.send("⏳ دارم برات می‌فرستم… 🎵")
+    caption = music_svc.caption(item) + "\n" + SEPARATOR + "\n✨ آسترا"
     try:
-        file_id = ctx.client.upload_path(path, file_type)
+        ctx.client.send_audio_url(
+            chat_id=ctx.chat_id, audio_url=audio,
+            title=(item.get("title") or "")[:64],
+            performer=(item.get("artist") or "")[:64],
+            caption=caption,
+        )
         keyboard = (
             kb()
-            .row(btn("🎵 آهنگ مشابه", f"music:similar:{index}"),
+            .row(btn("⬇️ لینکِ دانلود", f"music:link:{index}"),
                  btn("➕ پلی‌لیست", f"music:pladd:{index}"))
-            .row(btn("🎚 تغییر کیفیت", "music:quality") if ctx.is_vip else
-                 btn("💎 کیفیت ۳۲۰ مخصوص VIP", "menu:vip"))
-            .row(btn("🔍 جستجوی جدید", "music:search"))
+            .row(btn("🎧 نسخه‌ی کامل در یوتیوب", "music:yt") ,
+                 btn("🔍 جستجوی جدید", "music:search"))
             .nav()
         )
         ctx.client.send_file(ctx.chat_id, file_id,

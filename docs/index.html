@@ -376,6 +376,68 @@ body.ready .hero{animation:spFade .7s var(--e) both}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
  /* ---------- بازی دوز (تابلوی حرفه‌ای) ---------- */
+ /* ===== موسیقی ===== */
+ .mu-item{display:flex;align-items:center;gap:10px;padding:9px 10px;margin-bottom:8px;
+  border-radius:15px;background:var(--panel2);border:1px solid var(--line);cursor:pointer;
+  transition:transform .18s var(--e),border-color .25s,box-shadow .25s;
+  animation:rise .34s var(--e) both}
+ .mu-item:active{transform:scale(.98)}
+ .mu-item:hover{border-color:rgba(139,92,246,.45);box-shadow:0 6px 16px rgba(0,0,0,.14)}
+ .mu-item.now{border-color:var(--a1);box-shadow:0 0 0 1px color-mix(in srgb,var(--a1) 55%,transparent),
+  0 8px 20px color-mix(in srgb,var(--a1) 22%,transparent)}
+ .mu-thumb{width:46px;height:46px;flex:none;border-radius:12px;overflow:hidden;display:flex;
+  align-items:center;justify-content:center;font-size:20px;background:rgba(255,255,255,.06);
+  border:1px solid var(--line)}
+ .mu-thumb img{width:100%;height:100%;object-fit:cover}
+ .mu-info{flex:1;min-width:0}
+ .mu-info b{display:block;font-size:13px;line-height:1.45;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+ .mu-info em{display:block;font-style:normal;font-size:11px;opacity:.72;margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .mu-info span{display:block;font-size:10px;opacity:.55;margin-top:3px}
+ .mu-add{flex:none;background:none;border:0;font-size:17px;cursor:pointer;padding:4px 6px;
+  border-radius:10px;transition:transform .2s var(--e)}
+ .mu-add:active{transform:scale(1.25)}
+ /* پخش‌کننده‌ی سراسری (بالای داک) */
+ .mu-dock{position:fixed;left:10px;right:10px;
+  bottom:calc(78px + env(safe-area-inset-bottom));z-index:58;
+  display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:20px;
+  background:color-mix(in srgb,var(--bg) 82%,transparent);
+  backdrop-filter:blur(26px) saturate(1.6);-webkit-backdrop-filter:blur(26px) saturate(1.6);
+  border:1px solid var(--line);
+  box-shadow:0 12px 30px rgba(0,0,0,.30),inset 0 1px 0 rgba(255,255,255,.08);
+  animation:dockUp .42s var(--e2) both}
+ @keyframes dockUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+ .mu-dock-cover{width:46px;height:46px;flex:none;border-radius:13px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  background:linear-gradient(150deg,rgba(139,92,246,.34),rgba(34,211,238,.24));
+  border:1px solid rgba(139,92,246,.4)}
+ .mu-dock-cover img{width:100%;height:100%;object-fit:cover}
+ .mu-dock-mid{flex:1;min-width:0}
+ .mu-dock-mid b{display:block;font-size:12.5px;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+ .mu-dock-mid em{display:block;font-style:normal;font-size:10.5px;opacity:.68;margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .mu-dock-btns{display:flex;align-items:center;gap:5px;flex:none}
+ .mu-dock-btns button{width:34px;height:34px;border-radius:50%;padding:0;font-size:14px;
+  display:flex;align-items:center;justify-content:center}
+ .mu-dock-btns .ghost{background:rgba(255,255,255,.07)}
+ .mu-bar{margin-top:6px}
+ .mu-equal{display:none;gap:3px;justify-content:flex-start;align-items:flex-end;height:12px;
+  margin-top:5px;opacity:.4}
+ .mu-dock .mu-equal{display:flex}
+ .mu-equal i{width:3px;height:5px;border-radius:2px;background:var(--a1);
+  transition:opacity .3s}
+ .mu-equal.on i{animation:eq .9s ease-in-out infinite;opacity:1}
+ .mu-equal.on i:nth-child(2){animation-delay:.15s}
+ .mu-equal.on i:nth-child(3){animation-delay:.3s}
+ .mu-equal.on i:nth-child(4){animation-delay:.45s}
+ .mu-equal.on i:nth-child(5){animation-delay:.6s}
+ @keyframes eq{0%,100%{height:5px}50%{height:16px}}
+ .mu-bar{height:6px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;cursor:pointer}
+ .mu-bar span{display:block;height:100%;width:0;border-radius:99px;
+  background:linear-gradient(90deg,var(--a1),var(--a2));transition:width .18s linear}
+ .mu-time{display:flex;justify-content:space-between;font-size:9.5px;opacity:.6;margin-top:3px}
  .ms-lines{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:11px;
   background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:9px 11px}
  .ms-lines input[type=range]{flex:1;min-width:120px;accent-color:var(--a1)}
@@ -744,6 +806,25 @@ body.ready .hero{animation:spFade .7s var(--e) both}
   <button data-tab="guide"><svg class="ic"><use href="#i-guide"/></svg>راهنما</button>
   <button data-tab="me"><svg class="ic"><use href="#i-user"/></svg>حساب</button>
 </nav>
+<div class="mu-dock" id="muPlayer" hidden>
+  <div class="mu-dock-cover" id="muCover">🎵</div>
+  <div class="mu-dock-mid">
+    <b id="muTitle">—</b>
+    <em id="muArtist">—</em>
+    <div class="mu-equal" id="muEqual"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="mu-bar" id="muBar"><span id="muFill"></span></div>
+    <div class="mu-time"><span id="muNow">0:00</span><span id="muDur">0:30</span></div>
+  </div>
+  <div class="mu-dock-btns">
+    <button class="ghost" id="muPrev" title="قبلی">⏮</button>
+    <button id="muPlay" title="پخش/توقف">▶️</button>
+    <button class="ghost" id="muNext" title="بعدی">⏭</button>
+    <button class="ghost" id="muAdd" title="ذخیره">🤍</button>
+    <button class="ghost" id="muDl" title="دانلود">⬇️</button>
+    <button class="ghost" id="muShare" title="اشتراک">🔗</button>
+  </div>
+</div>
+<audio id="muAudio" preload="none"></audio>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1007,15 +1088,27 @@ const UI={
   </div>
   <div class="hist" id="cHist"></div>`,
 
- music:()=>`<h2><svg class="ic"><use href="#i-music"/></svg> جستجوی آهنگ</h2>
-  <div class="row"><input id="muQ" placeholder="نام آهنگ یا خواننده…"></div>
-  <div class="row" style="margin-top:9px">
-   <select id="muKind" style="max-width:130px"><option value="audio">🎧 فقط صدا</option><option value="video">🎬 ویدیو</option></select>
-   <select id="muQ2" style="max-width:130px"><option value="192">192 kbps</option><option value="128">128 kbps</option><option value="320">320 (ویژه)</option></select>
+ music:()=>`<h2><svg class="ic"><use href="#i-music"/></svg> موسیقی · جستجو و پخشِ واقعی</h2>
+  <p class="mut" style="margin:0 0 9px">نامِ آهنگ یا خواننده را بنویس؛ نتیجه‌ی واقعی می‌آید،
+   خودش پخش می‌شود و می‌توانی ذخیره‌اش کنی 🎧</p>
+  <div class="row" style="gap:6px">
+   <input id="muQ" placeholder="مثلاً: گوگوش، Ebi، Sia…" style="flex:1">
+   <button id="muGo">🔍</button>
   </div>
-  <div class="row" style="margin-top:9px"><button id="muGo">🔍 جستجو و دریافت</button></div>
-  <p class="mut" style="margin:9px 0 0">نتیجه در چت تلگرام برایت می‌آید؛ ربات آهنگ را مستقیم دانلود و ارسال می‌کند 🎵</p>
-  <div class="out" id="muOut">نام آهنگ یا خواننده را بنویس…</div>`,
+  <div class="row" id="muChips" style="gap:6px;margin-top:8px;flex-wrap:wrap"></div>
+  <div class="mut" id="muStatus" style="margin:9px 0 4px"></div>
+  <div id="muList"></div>
+`,
+
+ playlist:()=>`<h2><svg class="ic"><use href="#i-playlist"/></svg> پلی‌لیست من</h2>
+  <p class="mut" style="margin:0 0 9px">آهنگ‌هایی که ذخیره کرده‌ای؛ یکی را بزن تا پخش شود 🎶</p>
+  <div class="row" style="gap:6px;margin-bottom:9px">
+   <button class="ghost" id="plPlayAll">▶️ پخشِ همه</button>
+   <button class="ghost" id="plClear">🗑 پاک کردن</button>
+   <button class="ghost" id="plSend">📨 فرستادن به ربات</button>
+  </div>
+  <div id="plList"></div>
+  <audio id="plAudio" preload="none"></audio>`,
 
  link:()=>`<h2><svg class="ic"><use href="#i-download"/></svg> تشخیص لینک</h2>
   <div class="row"><input id="lkIn" placeholder="لینک را اینجا بچسبان…"></div>
@@ -1670,6 +1763,7 @@ async function openTool(name){
     if(name==='crypto') initCrypto();
     if(name==='font') initFont();
     if(name==='music') initMusic();
+    if(name==='playlist') initPlaylist();
     if(name==='link') initLink();
     if(name==='bio') initBio();
     if(name==='username') initUsername();
@@ -1981,17 +2075,208 @@ function initCrypto(){
 
 
 /* ---------- موسیقی (ارسال به ربات) ---------- */
-function initMusic(){
-  const go=()=>{
-    const q=$('#muQ').value.trim();
-    if(q.length<2) return toast('نام آهنگ یا خواننده را بنویس 🎵');
-    const kind=$('#muKind').value, quality=$('#muQ2').value;
-    $('#muOut').textContent='⏳ فرستادم… نتیجه در چت تلگرام می‌آید.';
-    send('music',{query:q,kind,quality});
+/* ---------- موسیقی (جستجو و پخشِ واقعی) ---------- */
+const MU_CHIPS=['گوگوش','ابی','همایون شجریان','علیرضا قربانی','Sia','Ebi','محمدرضا شجریان','Dariush'];
+let MU_RES=[], MU_I=-1, MU_PLAYING=false;
+
+function plKey(){ return 'astra_playlist_v1'; }
+function plGet(){ try{ return JSON.parse(localStorage.getItem(plKey())||'[]'); }catch(e){ return []; } }
+function plSave(list){ try{ localStorage.setItem(plKey(), JSON.stringify(list)); }catch(e){} }
+function plHas(id){ return plGet().some(t=>t.id===id); }
+function plAdd(track){
+  const list=plGet();
+  if(plHas(track.id)){ toast('قبلاً ذخیره شده ❤️'); return false; }
+  list.unshift(track); plSave(list.slice(0,100)); toast('✅ به پلی‌لیست اضافه شد'); return true;
+}
+function plRemove(id){ plSave(plGet().filter(t=>t.id!==id)); }
+
+function muDur(ms){ const s=Math.round((ms||0)/1000)||0; return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+function muAudio(){ return $('#muAudio'); }
+
+async function muSearchApi(term, limit){
+  const url='https://itunes.apple.com/search?term='+encodeURIComponent(term)
+    +'&entity=song&limit='+(limit||15);
+  const res=await fetch(url,{headers:{'Accept':'application/json'}});
+  if(!res.ok) throw new Error('api');
+  return (await res.json()).results||[];
+}
+async function muSearch(term){
+  let rows=await muSearchApi(term, 18);
+  if(!rows.length){                                  // تلاش با تک‌واژه‌ها
+    const words=(term||'').split(/\s+/).filter(w=>w.length>2).sort((a,b)=>b.length-a.length);
+    for(const w of words){ rows=await muSearchApi(w, 12); if(rows.length) break; }
+  }
+  return rows.map(r=>({
+    id:'it-'+(r.trackId||''),
+    title:r.trackName||'',
+    artist:r.artistName||'',
+    album:r.collectionName||'',
+    cover:(r.artworkUrl100||'').replace('100x100bb.jpg','400x400bb.jpg'),
+    preview:r.previewUrl||'',
+    duration:Math.round((r.trackTimeMillis||0)/1000),
+    link:r.trackViewUrl||r.collectionViewUrl||'',
+    source:'Apple Music'
+  })).filter(t=>t.title && t.preview);
+}
+
+function muRow(t,i){
+  return '<div class="mu-item" data-i="'+i+'">'
+    +'<div class="mu-thumb">'+(t.cover?'<img src="'+t.cover+'" alt="" loading="lazy">':'🎵')+'</div>'
+    +'<div class="mu-info"><b>'+t.title+'</b><em>'+t.artist+(t.album?' · '+t.album:'')+'</em>'
+    +'<span>⏱ '+muDur(t.duration*1000)+' · '+t.source+'</span></div>'
+    +'<button class="mu-add'+(plHas(t.id)?' on':'')+'" data-id="'+t.id+'" title="ذخیره">'
+    +(plHas(t.id)?'❤️':'🤍')+'</button></div>';
+}
+
+function muRender(rows){
+  const list=$('#muList'), st=$('#muStatus');
+  if(!rows.length){
+    list.innerHTML='<div class="empty">🎧 آهنگی با این اسم پیدا نکردم.\n'
+      +'می‌توانی با نامِ انگلیسی یا بخشی از اسم امتحان کنی.</div>';
+    st.textContent=''; return;
+  }
+  MU_RES=rows;
+  st.textContent='▫️ '+fa(rows.length)+' نتیجه‌ی واقعی — روی هر کدام بزن تا پخش شود';
+  list.innerHTML=rows.map(muRow).join('');
+  list.querySelectorAll('.mu-item').forEach(el=>el.onclick=(e)=>{
+    if(e.target.closest('.mu-add')) return;
+    buzz(); muPlay(+el.dataset.i);
+  });
+  list.querySelectorAll('.mu-add').forEach(b=>b.onclick=(e)=>{
+    e.stopPropagation(); buzz();
+    const t=MU_RES.find(x=>x.id===b.dataset.id); if(!t) return;
+    if(plHas(t.id)){ plRemove(t.id); b.textContent='🤍'; b.classList.remove('on'); toast('از پلی‌لیست حذف شد'); }
+    else { if(plAdd(t)){ b.textContent='❤️'; b.classList.add('on'); } }
+  });
+}
+
+function muSet(sel, prop, val){ const el=$(sel); if(el) el[prop]=val; }
+function muShowPlayer(){ const p=$('#muPlayer'); if(p) p.hidden=false; }
+function muPlay(i){
+  const t=MU_RES[i]; if(!t) return;
+  MU_I=i; const a=muAudio(); if(!a) return;
+  try{ a.src=t.preview; a.play(); }catch(e){}
+  MU_PLAYING=true;
+  muShowPlayer();
+  muSet('#muCover','innerHTML', t.cover?'<img src="'+t.cover+'" alt="">':'🎵');
+  muSet('#muTitle','textContent', t.title);
+  muSet('#muArtist','textContent', t.artist+(t.album?' · '+t.album:''));
+  muSet('#muPlay','textContent','⏸');
+  const eq=$('#muEqual'); if(eq) eq.classList.add('on');
+  const add=$('#muAdd'); if(add) add.textContent=plHas(t.id)?'❤️':'🤍';
+  const list=$('#muList');
+  if(list) list.querySelectorAll('.mu-item').forEach(el=>el.classList.toggle('now',+el.dataset.i===i));
+  const fill=$('#muFill'); if(fill) fill.style.width='0%';
+}
+function muToggle(){
+  const a=muAudio(); if(!a||!a.src) return;
+  if(MU_PLAYING){ try{ a.pause(); }catch(e){} MU_PLAYING=false;
+    muSet('#muPlay','textContent','▶️'); const eq=$('#muEqual'); if(eq) eq.classList.remove('on'); }
+  else { try{ a.play(); }catch(e){} MU_PLAYING=true;
+    muSet('#muPlay','textContent','⏸'); const eq2=$('#muEqual'); if(eq2) eq2.classList.add('on'); }
+}
+
+async function initMusic(){
+  const chips=$('#muChips');
+  chips.innerHTML=MU_CHIPS.map(c=>'<span class="chip" data-q="'+c+'">'+c+'</span>').join('');
+  chips.querySelectorAll('.chip').forEach(el=>el.onclick=()=>{
+    buzz(); $('#muQ').value=el.dataset.q; run();
+  });
+
+  const a=muAudio();
+  if(a){
+    a.ontimeupdate=()=>{
+      if(!a.duration) return;
+      const pct=(a.currentTime/a.duration)*100;
+      const fill=$('#muFill'); if(fill) fill.style.width=pct+'%';
+      muSet('#muNow','textContent', Math.floor(a.currentTime/60)+':'
+        +String(Math.floor(a.currentTime%60)).padStart(2,'0'));
+      muSet('#muDur','textContent', Math.floor(a.duration/60)+':'
+        +String(Math.floor(a.duration%60)).padStart(2,'0'));
+    };
+    a.onended=()=>{
+      if(MU_RES.length>1){ muPlay((MU_I+1)%MU_RES.length); return; }
+      MU_PLAYING=false; muSet('#muPlay','textContent','▶️');
+      const eq=$('#muEqual'); if(eq) eq.classList.remove('on');
+      const fill=$('#muFill'); if(fill) fill.style.width='0%';
+    };
+    a.onpause=()=>{ MU_PLAYING=false; muSet('#muPlay','textContent','▶️');
+      const eq=$('#muEqual'); if(eq) eq.classList.remove('on'); };
+    a.onplay=()=>{ MU_PLAYING=true; muSet('#muPlay','textContent','⏸');
+      const eq=$('#muEqual'); if(eq) eq.classList.add('on'); };
+  }
+  const bar=$('#muBar'); if(bar) bar.onclick=(e)=>{
+    const a2=muAudio(); if(!a2||!a2.duration) return;
+    const r=bar.getBoundingClientRect();
+    a2.currentTime=((e.clientX-r.left)/r.width)*a2.duration;
   };
-  $('#muGo').onclick=go;
-  $('#muQ').onkeydown=e=>{if(e.key==='Enter') go();};
-  $('#muQ').value && go();
+  const play=$('#muPlay'); if(play) play.onclick=()=>{buzz(); muToggle();};
+  const next=$('#muNext'); if(next) next.onclick=()=>{buzz(); if(MU_RES.length) muPlay((MU_I+1)%MU_RES.length);};
+  const prev=$('#muPrev'); if(prev) prev.onclick=()=>{buzz(); if(MU_RES.length) muPlay((MU_I-1+MU_RES.length)%MU_RES.length);};
+  const add=$('#muAdd'); if(add) add.onclick=()=>{ const t=MU_RES[MU_I]; if(t&&plAdd(t)) add.textContent='❤️ در پلی‌لیست'; };
+  const dl=$('#muDl'); if(dl) dl.onclick=()=>{ const t=MU_RES[MU_I]; if(!t) return;
+    buzz(); const a2=document.createElement('a'); a2.href=t.preview; a2.download=(t.title+' - '+t.artist+'.m4a');
+    a2.target='_blank'; document.body.appendChild(a2); a2.click(); a2.remove();
+    toast('⬇️ دانلود شروع شد'); };
+  const sh=$('#muShare'); if(sh) sh.onclick=()=>{ const t=MU_RES[MU_I]; if(!t) return;
+    buzz(); const txt='🎵 '+t.title+' — '+t.artist+'\n🔗 '+t.link;
+    copy(txt); toast('✅ لینک و مشخصات کپی شد'); };
+
+  async function run(){
+    const q=($('#muQ').value||'').trim();
+    if(q.length<2){ toast('نام آهنگ یا خواننده را بنویس 🎵'); return; }
+    $('#muStatus').textContent='⏳ در حال جستجو…';
+    $('#muList').innerHTML='<div class="empty">🔎 دارم می‌گردم…</div>';
+    try{
+      const rows=await muSearch(q);
+      muRender(rows);
+      if(rows.length){ muPlay(0); }
+    }catch(e){
+      $('#muStatus').textContent='';
+      $('#muList').innerHTML='<div class="empty">📡 ارتباط برقرار نشد؛ دوباره امتحان کن.</div>';
+    }
+  }
+  const go=$('#muGo'); if(go) go.onclick=()=>{buzz(); run();};
+  const inp=$('#muQ'); if(inp) inp.onkeydown=e=>{ if(e.key==='Enter'){ buzz(); run(); } };
+  if(inp && inp.value.trim()) run();
+}
+
+/* ---------- پلی‌لیست من ---------- */
+function initPlaylist(){
+  const list=$('#plList'); if(!list) return;
+  const draw=()=>{
+    const rows=plGet();
+    if(!rows.length){
+      list.innerHTML='<div class="empty">لیستت خالی است 🎶\n'
+        +'از بخشِ موسیقی روی «🤍» هر آهنگ بزن تا اینجا ذخیره شود.</div>';
+      return;
+    }
+    list.innerHTML='<div class="mut" style="margin-bottom:7px">▫️ '+fa(rows.length)+' آهنگ ذخیره شده</div>'
+      +rows.map((t,i)=>'<div class="mu-item" data-i="'+i+'">'
+        +'<div class="mu-thumb">'+(t.cover?'<img src="'+t.cover+'" alt="" loading="lazy">':'🎵')+'</div>'
+        +'<div class="mu-info"><b>'+t.title+'</b><em>'+t.artist+'</em>'
+        +'<span>⏱ '+muDur(t.duration*1000)+'</span></div>'
+        +'<button class="mu-add on" data-id="'+t.id+'">❤️</button></div>').join('');
+    list.querySelectorAll('.mu-item').forEach(el=>el.onclick=(e)=>{
+      if(e.target.closest('.mu-add')) return;
+      const t=plGet()[+el.dataset.i]; if(!t) return;
+      buzz(); MU_RES=plGet(); muPlay(+el.dataset.i);
+      const box=$('#toolBox'); if(box&&box.scrollIntoView) box.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+    list.querySelectorAll('.mu-add').forEach(b=>b.onclick=(e)=>{
+      e.stopPropagation(); buzz(); plRemove(b.dataset.id); draw(); toast('حذف شد');
+    });
+  };
+  const all=$('#plPlayAll'); if(all) all.onclick=()=>{
+    const rows=plGet(); if(!rows.length) return toast('لیست خالی است 🎶');
+    buzz(); MU_RES=rows; muPlay(0);
+  };
+  const cl=$('#plClear'); if(cl) cl.onclick=()=>{ buzz(); plSave([]); draw(); toast('پاک شد 🗑'); };
+  const sd=$('#plSend'); if(sd) sd.onclick=()=>{
+    const rows=plGet(); if(!rows.length) return toast('لیست خالی است 🎶');
+    buzz(); send('playlist',{items:rows.slice(0,40).map(t=>t.title+' — '+t.artist)});
+  };
+  draw();
 }
 
 /* ---------- تشخیص لینک ---------- */
