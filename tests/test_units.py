@@ -706,3 +706,38 @@ class TestMeaningsAndRouting(unittest.TestCase):
         for question in ("باتری گوشی زود خالی میشه", "گیاهام خشک شدن",
                          "چطور خلاق‌تر باشم", "سفر ارزان"):
             self.assertTrue(brain.advice(question), question)
+
+
+class TestBroadcast(unittest.TestCase):
+    """ارسالِ پیامِ همگانیِ یک‌باره."""
+
+    def test_pending_file_is_read(self):
+        from astra.services import broadcast
+        data = broadcast.pending()
+        if data is None:
+            self.skipTest("پیامِ در انتظاری نیست")
+        self.assertTrue(str(data.get("text", "")).strip())
+
+    def test_markdown_becomes_entities(self):
+        from astra.services.broadcast import split_markdown
+        text, entities = split_markdown("سلام **آسترا** جان")
+        self.assertEqual(text, "سلام آسترا جان")
+        self.assertEqual(len(entities), 1)
+        self.assertEqual(entities[0]["type"], "bold")
+        self.assertEqual(text.encode("utf-16-le")[entities[0]["offset"] * 2:
+                                                   (entities[0]["offset"] +
+                                                    entities[0]["length"]) * 2]
+                         .decode("utf-16-le"), "آسترا")
+
+    def test_emoji_offsets_are_utf16(self):
+        from astra.services.broadcast import split_markdown
+        text, entities = split_markdown("🎉 **بُردی** عالی")
+        raw = text.encode("utf-16-le")
+        chunk = raw[entities[0]["offset"] * 2:(entities[0]["offset"] +
+                                               entities[0]["length"]) * 2]
+        self.assertEqual(chunk.decode("utf-16-le"), "بُردی")
+
+    def test_plain_text_has_no_markers(self):
+        from astra.services.broadcast import split_markdown
+        text, _ = split_markdown("**الف** و **ب**")
+        self.assertNotIn("**", text)

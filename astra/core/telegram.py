@@ -126,8 +126,11 @@ class TelegramClient(RubikaClient):
     def send_message(self, chat_id: str, text: str, inline_keypad: dict | None = None,
                      chat_keypad: dict | None = None, chat_keypad_type: str | None = None,
                      reply_to_message_id: str | None = None,
-                     disable_notification: bool = False) -> dict:
+                     disable_notification: bool = False,
+                     entities: list | None = None) -> dict:
         payload: dict[str, Any] = {"chat_id": chat_id, "text": text}
+        if entities:
+            payload["entities"] = entities
         markup = to_inline_keyboard(inline_keypad) or to_reply_keyboard(chat_keypad)
         if markup:
             payload["reply_markup"] = markup

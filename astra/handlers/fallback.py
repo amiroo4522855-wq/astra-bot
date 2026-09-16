@@ -27,10 +27,48 @@ RE_THANKS = re.compile(r"(مرسی|ممنون|تشکر|thank)", re.IGNORECASE)
 RE_MENU = re.compile(r"^(منو|منوی اصلی|بازگشت|برگشت|menu)$", re.IGNORECASE)
 RE_VIP = re.compile(r"(اشتراک|ویژه|vip|خرید)", re.IGNORECASE)
 RE_CITY_TIME = re.compile(r"(ساعت|تاریخ|ساعت چند)", re.IGNORECASE)
+RE_FOOD = re.compile(r"(دستور\s*پخت|طرز\s*تهیه|دستور\s*غذا|چی\s*بپزم|چی\s*درست\s*کنم|"
+                     r"آشپزی|رسپی|غذای\s*ایرانی)", re.IGNORECASE)
 
 
 def _strip_keyword(text: str, pattern: re.Pattern) -> str:
     return clean(pattern.sub("", text, count=1))
+
+
+# --------------------------------------------------------------------------- #
+# آشپزی ایرانی (۱۰۰ غذا)
+# --------------------------------------------------------------------------- #
+@text(lambda ctx: bool(RE_FOOD.search(ctx.text or "")))
+@guarded("nlp.food")
+def nlp_food(ctx: Context) -> None:
+    from ..services import recipes
+    from .food import _build
+    from ..core.keyboards import btn as _btn
+    query = re.sub(RE_FOOD, " ", ctx.text or "")
+    query = re.sub(r"^(برام|برایم|لطفا|لطفاً|امروز|یه|یک)\s+", "", query.strip()).strip(" .؟?")
+    suggest_only = bool(re.search(r"(چی\s*بپزم|چی\s*درست\s*کنم|پیشنهاد)", ctx.text or ""))
+    item = None if suggest_only else recipes.find(query)
+    if item:
+        ctx.send(recipes.render(item) + "\n" + SEPARATOR + "\n"
+                 + "دستورِ غذای بعدی را بنویسید یا پیشنهادِ شانسی بگیرید 🎲",
+                 _build([
+                     [_btn("🎲 پیشنهاد دیگر", "food:random"),
+                      _btn("🍲 دسته‌ها", "menu:food")],
+                     [_btn("🏠 منوی اصلی", "nav:home")]]))
+        return
+    if suggest_only or not query:
+        text = recipes.suggestion_text() or "🍲 دستوری در دسترس نیست 🙏"
+        ctx.send(text, _build([
+            [_btn("🎲 یکی دیگر", "food:random"), _btn("🍲 دسته‌ها", "menu:food")],
+            [_btn("🏠 منوی اصلی", "nav:home")]]))
+        return
+    ctx.send(
+        f"🍲 دستورِ «{query}» را در مجموعه‌ام پیدا نکردم\n{SEPARATOR}\n"
+        "من ۱۰۰ غذای اصیل ایرانی را با دستورِ کامل دارم.\n"
+        "نامِ غذا را دقیق‌تر بنویسید یا از دسته‌ها انتخاب کنید 👇",
+        _build([[_btn("🍲 دسته‌های غذا", "menu:food"),
+                 _btn("🎲 پیشنهاد شانسی", "food:random")],
+                [_btn("🏠 منوی اصلی", "nav:home")]]))
 
 
 # --------------------------------------------------------------------------- #

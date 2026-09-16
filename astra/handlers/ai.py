@@ -120,6 +120,23 @@ def _brain_answer(ctx: Context, text: str) -> str:
         return f"😂 یه جوک بامزه\n{SEPARATOR}\n{_joke_text()}"
     if kind == "poem":
         return _poem_text()
+    if kind == "food":
+        from ..services import recipes
+        query = slots.get("query", "")
+        item = recipes.find(query) if not slots.get("suggest") else None
+        if item:
+            return recipes.render(item)
+        if slots.get("suggest"):
+            text = recipes.suggestion_text()
+            if text:
+                return text
+        suggestion = recipes.suggestion_text()
+        return (f"🍲 دستورِ «{query or 'این غذا'}» را در مجموعه‌ام پیدا نکردم\n"
+                f"{SEPARATOR}\n"
+                "من ۱۰۰ غذای اصیل ایرانی را با دستورِ کامل دارم.\n"
+                "برای دیدنِ فهرست، مینی‌اپ را باز کن یا نامِ غذا را دقیق‌تر بنویس.\n"
+                f"{SEPARATOR}\n" + (suggestion if suggestion else tip("مثال: «دستور پخت ته‌چین»")))
+
     if kind == "wiki":
         return _knowledge(ctx, slots.get("query", text))
     if kind == "calc":

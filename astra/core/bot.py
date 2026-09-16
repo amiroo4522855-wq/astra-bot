@@ -111,11 +111,20 @@ class AstraBot:
 
         threading.Thread(target=worker, daemon=True).start()
 
+    def _send_pending_broadcast(self) -> None:
+        """ارسالِ پیام همگانیِ در انتظار (فقط یک بار)."""
+        try:
+            from ..services import broadcast
+            broadcast.run(self.db, self.client, log=print)
+        except Exception as exc:                      # هرگز نباید ربات را متوقف کند
+            self.db.log("ERROR", "broadcast", str(exc))
+
     def run(self) -> None:
         """حلقه‌ی اصلی (Long Polling)."""
         self._install_signals()
         self.bootstrap()
         self._start_publisher()          # انتشار دوره‌ای قیمت‌ها برای مینی‌اپ
+        self._send_pending_broadcast()   # پیام همگانیِ یک‌باره (در صورت وجود)
         failures = 0
         while self.running:
             try:

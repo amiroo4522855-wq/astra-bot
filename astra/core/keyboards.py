@@ -99,7 +99,7 @@ def main_menu() -> dict:
         .row(btn("📥 دانلودر", "menu:dl"), btn("🛠 ابزارها", "menu:tools"))
         .row(btn("🌤 کاربردی", "menu:practical"), btn("🎮 سرگرمی", "menu:fun"))
         .row(btn("⚙️ مدیریت گروه", "menu:group"), btn("💎 عضویت ویژه", "menu:vip"))
-        .row(btn("ℹ️ راهنما و پشتیبانی", "menu:help"))
+        .row(btn("🍲 آشپزی", "menu:food"), btn("ℹ️ راهنما و پشتیبانی", "menu:help"))
         .row(btn("✨ مینی‌اپ آسترا", "app:open"))
         .build()
     )

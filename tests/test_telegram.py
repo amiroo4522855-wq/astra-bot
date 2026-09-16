@@ -65,7 +65,7 @@ class TestKeyboardConversion(unittest.TestCase):
         """همه‌ی دکمه‌های منوی اصلی باید به callback_data تبدیل شوند."""
         result = to_inline_keyboard(main_menu())
         total = sum(len(row) for row in result["inline_keyboard"])
-        self.assertEqual(total, 10)         # ۹ بخش + دکمه‌ی مینی‌اپ
+        self.assertEqual(total, 11)         # ۱۰ بخش + دکمه‌ی مینی‌اپ
 
 
 class TestTelegramParsing(unittest.TestCase):

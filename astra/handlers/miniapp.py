@@ -251,6 +251,19 @@ def _download(ctx: Context, data: dict) -> None:
     do_download(ctx)
 
 
+def _food(ctx: Context, data: dict) -> None:
+    """ارسالِ دستورِ غذا از مینی‌اپ به چت."""
+    from ..services import recipes
+    name = str(data.get("name") or "").strip()
+    item = recipes.find(name) if name else None
+    if not item:
+        item = recipes.random_recipe()
+    if not item:
+        ctx.send("🍲 دستورها در دسترس نیست؛ کمی بعد دوباره امتحان کنید 🙏")
+        return
+    ctx.send(recipes.render(item))
+
+
 def _qr(ctx: Context, data: dict) -> None:
     from .tools import qr_do
     ctx.update.text = str(data.get("text") or data.get("url") or "")
@@ -338,5 +351,7 @@ ACTIONS = {
     "joke": _joke,
     "dooz": _dooz,
     "anon": _anon,
+    "food": _food,
+    "recipes": _food,
     "profile": _profile,
 }

@@ -13,6 +13,7 @@ from . import music            # موزیک
 from . import ai               # هوش مصنوعی
 from . import downloader       # دانلودر
 from . import fun              # سرگرمی
+from . import food             # آشپزی ایرانی 🍲
 from . import games            # بازی دوز ❌⭕️
 from . import anon             # چت ناشناس 🕵️
 from . import group            # مدیریت گروه

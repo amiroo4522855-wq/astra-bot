@@ -371,6 +371,22 @@ def analyze(text: str, memory: dict | None = None) -> dict:
         return {"kind": "convert", "text": "", "slots": slots,
                 "remember": {}, "suggest": []}
 
+    # --- آشپزی و دستورِ غذا ---
+    food_words = ("دستور پخت", "دستورِ پخت", "طرز تهیه", "دستور غذا", "چی بپزم",
+                  "چی درست کنم", "غذا چی", "آشپزی", "رسپی")
+    if any(word in low for word in food_words):
+        suggest_only = any(w in low for w in ("چی بپزم", "چی بپزیم", "چی درست کنم",
+                                              "چی درست کنیم", "پیشنهاد غذا", "چی خوبه"))
+        topic = clean
+        for word in ("دستور پخت", "دستورِ پخت", "طرز تهیه", "دستور غذا", "دستور",
+                     "چی بپزم", "چی درست کنم", "غذا", "آشپزی", "رسپی", "بپزم",
+                     "درست کنم", "لطفا", "لطفاً", "برام", "برایم", "امروز", "؟", "?"):
+            topic = topic.replace(word, " ")
+        topic = re.sub(r"\s+", " ", topic).strip()
+        return {"kind": "food", "text": text,
+                "slots": {"query": topic, "suggest": suggest_only or len(topic) < 2},
+                "remember": {}, "suggest": []}
+
     # --- ترجمه ---
     # «معنی <واژه‌ی فارسی>» یعنی درخواستِ تعریف، نه ترجمه (به بخشِ دانش می‌رود)
     after_meaning = normalize(raw).replace("معنی", " ").strip()
