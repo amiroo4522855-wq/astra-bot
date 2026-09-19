@@ -79,6 +79,34 @@ class TestMiniApp(unittest.TestCase):
         missing = sorted(a for a in actions if a not in miniapp.ACTIONS)
         self.assertEqual([], missing, f"این actionها در سرور هندلر ندارند: {missing}")
 
+    def test_pro_player_present(self):
+        """پلیرِ حرفه‌ای: شیتِ بزرگ، ویژوالایزر، نوارِ مینی."""
+        for part in ('id="muSheet"', 'id="muViz"', 'id="muArtInner"',
+                     'id="muPlayMini"', 'id="muPlayer"'):
+            self.assertIn(part, HTML, f"{part} یافت نشد")
+        for fn in ("function muExpand(", "function muReact(", "function muGraph(",
+                   "function muPaint(", "function muAutoRise(", "function muBindPlayer("):
+            self.assertIn(fn, SCRIPT, f"{fn} یافت نشد")
+
+    def test_player_rises_behind_the_dock(self):
+        """شیت باید z-index پایین‌تر از منوی موبایلی داشته باشد (از پشتِ آن بالا بیاید)."""
+        def z(sel):
+            i = STYLE.index(sel)
+            return int(re.search(r"z-index:(\d+)", STYLE[i:i + 400]).group(1))
+        zs, zt = z(".mu-sheet{"), z("\n.tabs{")
+        self.assertLess(zs, zt, "شیت باید پشتِ منوی موبایلی باشد")
+
+    def test_support_id_is_everywhere(self):
+        self.assertIn("AmirZed4", HTML)
+        self.assertIn("function openSupport(", SCRIPT)
+        self.assertIn("data-support", HTML)
+
+    def test_home_hero_and_quick_rail(self):
+        for part in ('id="homeHero"', 'id="rail"', 'id="greet"', 'id="stTools"'):
+            self.assertIn(part, HTML, f"{part} یافت نشد")
+        for fn in ("function initHome(", "function greetText(", "function faDate("):
+            self.assertIn(fn, SCRIPT, f"{fn} یافت نشد")
+
     def test_win_line_survives_empty_winner(self):
         """خطِ پیروزی نباید هنگامِ نبودِ برنده خطا بدهد (باگِ قبلی)."""
         body = SCRIPT[SCRIPT.index("function dzWinLine("):]

@@ -987,6 +987,18 @@ class TestMusicFlow(unittest.TestCase):
         self.assertEqual([], self.errors, "خطای پنهان در handlerهای موزیک")
 
 
+class TestSupportId(unittest.TestCase):
+    """آیدیِ پشتیبانی باید در پیام‌های ربات دیده شود."""
+
+    def test_support_id_is_amirzed4(self):
+        from astra.handlers.help import SUPPORT_ID
+        self.assertEqual("@AmirZed4", SUPPORT_ID)
+
+    def test_support_message_contains_id(self):
+        src = Path("astra/handlers/help.py").read_text(encoding="utf-8")
+        self.assertIn("SUPPORT_ID", src)
+
+
 class TestStickerService(unittest.TestCase):
     """ساختِ استیکر واقعی (WebP)."""
 

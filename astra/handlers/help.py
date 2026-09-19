@@ -44,6 +44,7 @@ def help_menu(ctx: Context) -> None:
         kb()
         .row(btn("📖 راهنمای بخش‌ها", "help:guide"), btn("📋 دستورات", "help:commands"))
         .row(btn("💬 پشتیبانی", "help:support"), btn("🤖 درباره آسترا", "help:about"))
+        .row(btn(f"📣 {SUPPORT_ID}", "help:support"))
         .nav()
     )
     ctx.answer(
@@ -99,6 +100,9 @@ def help_about(ctx: Context) -> None:
     )
 
 
+SUPPORT_ID = "@AmirZed4"          # آیدیِ پشتیبانی
+
+
 @route("help:support")
 @guarded("help.support")
 def help_support(ctx: Context) -> None:
@@ -109,6 +113,10 @@ def help_support(ctx: Context) -> None:
                "پیامت رو بنویس؛ مستقیم به ادمین می‌رسه 📨\n"
                f"{SEPARATOR}\n"
                "هرچه دقیق‌تر بنویسی، سریع‌تر جواب می‌گیری 🙏\n"
+               f"{SEPARATOR}\n"
+               "📣 ارتباطِ مستقیم با پشتیبانی:\n"
+               f"{SUPPORT_ID}\n"
+               f"{SEPARATOR}\n"
                "برای لغو بنویس: «لغو»"),
         kb().row(btn("❌ لغو", "menu:help")).build(),
     )
