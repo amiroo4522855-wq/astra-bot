@@ -38,6 +38,17 @@ class TestMiniApp(unittest.TestCase):
         missing = sorted(used - defined - {"chTyping"})
         self.assertEqual(missing, [], f"آیدی‌های تعریف‌نشده: {missing}")
 
+    def test_no_emoji_in_the_interface(self):
+        """هیچ ایموجی‌ای در رابط نمانده باشد (همه چیز SVG)."""
+        PIC = re.compile("[\U0001F000-\U0001FAFF\u2600-\u26FF\u2700-\u27BF\u2B00-\u2BFF]")
+        found = [c for c in PIC.findall(HTML) if c not in "\u2500"]
+        self.assertEqual([], found, f"ایموجی‌های باقیمانده: {sorted(set(found))}")
+
+    def test_svg_is_never_put_into_text_content(self):
+        """SVG در textContent به‌صورت متن دیده می‌شود؛ باید innerHTML باشد."""
+        bad = re.findall(r"\.textContent\s*=\s*[^;\n]*<svg", SCRIPT)
+        self.assertEqual([], bad, "SVG نباید با textContent ست شود")
+
     def test_every_icon_has_a_symbol(self):
         used = set(re.findall(r'href="#(i-[a-z0-9-]+)"', HTML))
         symbols = set(re.findall(r'<symbol id="(i-[a-z0-9-]+)"', HTML))

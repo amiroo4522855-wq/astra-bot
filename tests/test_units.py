@@ -987,6 +987,23 @@ class TestMusicFlow(unittest.TestCase):
         self.assertEqual([], self.errors, "خطای پنهان در handlerهای موزیک")
 
 
+class TestNoEmojiPolicy(unittest.TestCase):
+    """خروجیِ ربات باید کاملاً بدون ایموجی باشد."""
+
+    def test_no_emoji_strips_pictographs(self):
+        from astra.core.utils import no_emoji
+        self.assertEqual("بخش موزیک", no_emoji("🎵 بخش موزیک"))
+        self.assertEqual("سلام", no_emoji("سلام 👋✨"))
+        self.assertEqual("راهنما", no_emoji("ℹ راهنما"))
+
+    def test_keyboard_labels_are_cleaned(self):
+        from astra.core.utils import no_emoji_deep
+        kb = {"rows": [[{"text": "🎧 پلی‌لیست", "callback_data": "music:playlist"}]]}
+        out = no_emoji_deep(kb)
+        self.assertEqual("پلی‌لیست", out["rows"][0][0]["text"])
+        self.assertEqual("music:playlist", out["rows"][0][0]["callback_data"])
+
+
 class TestSupportId(unittest.TestCase):
     """آیدیِ پشتیبانی باید در پیام‌های ربات دیده شود."""
 

@@ -8,6 +8,8 @@
 """
 from __future__ import annotations
 
+from .utils import no_emoji, no_emoji_deep
+
 import json
 import time
 from pathlib import Path
@@ -121,6 +123,9 @@ class RubikaClient:
                      chat_keypad: dict | None = None, chat_keypad_type: str | None = None,
                      reply_to_message_id: str | None = None,
                      disable_notification: bool = False) -> dict:
+        text = no_emoji(text or "")
+        inline_keypad = no_emoji_deep(inline_keypad)
+        chat_keypad = no_emoji_deep(chat_keypad)
         payload: dict[str, Any] = {"chat_id": chat_id, "text": text}
         if inline_keypad:
             payload["inline_keypad"] = inline_keypad

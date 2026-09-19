@@ -8,7 +8,7 @@ from typing import Any, Callable
 
 from .. import config
 from ..core.db import Database, humanize_expiry
-from ..core.utils import chunk_text
+from ..core.utils import chunk_text, no_emoji, no_emoji_deep
 from .client import RubikaClient, RubikaError
 from .keyboards import main_menu
 
@@ -263,6 +263,9 @@ class Context:
              chat_keypad: dict | None = None, reply_to: str | None = None,
              long: bool = True) -> list[dict]:
         """ارسال پیام؛ در صورت طولانی بودن خودکار تکه‌تکه می‌شود."""
+        text = no_emoji(text or "")
+        keyboard = no_emoji_deep(keyboard)
+        chat_keypad = no_emoji_deep(chat_keypad)
         results = []
         pieces = chunk_text(text) if long else [text]
         for index, piece in enumerate(pieces):
@@ -286,6 +289,8 @@ class Context:
 
     def edit(self, text: str, keyboard: dict | None = None) -> bool:
         """ویرایش پیام فعلی (برای پاسخ به کلیک روی دکمه‌ها)."""
+        text = no_emoji(text or "")
+        keyboard = no_emoji_deep(keyboard)
         if not self.message_id:
             self.send(text, keyboard)
             return False

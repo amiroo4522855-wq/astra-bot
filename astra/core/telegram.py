@@ -11,6 +11,8 @@
 """
 from __future__ import annotations
 
+from .utils import no_emoji, no_emoji_deep
+
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -128,6 +130,9 @@ class TelegramClient(RubikaClient):
                      reply_to_message_id: str | None = None,
                      disable_notification: bool = False,
                      entities: list | None = None) -> dict:
+        text = no_emoji(text or "")
+        inline_keypad = no_emoji_deep(inline_keypad)
+        chat_keypad = no_emoji_deep(chat_keypad)
         payload: dict[str, Any] = {"chat_id": chat_id, "text": text}
         if entities:
             payload["entities"] = entities

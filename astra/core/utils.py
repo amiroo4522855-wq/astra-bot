@@ -21,6 +21,39 @@ SPACER = "\u200b"  # نیم‌فاصله‌ی نامرئی برای جلوگیر
 # --------------------------------------------------------------------------- #
 # اعداد و ارقام
 # --------------------------------------------------------------------------- #
+
+
+# ایموجی‌های تصویری (شکلک‌ها) — رابطِ آسترا فقط متن و آیکون دارد
+_EMOJI_RE = re.compile(
+    "[\U0001F000-\U0001FAFF\u2600-\u26FF\u2700-\u27BF\u2B00-\u2BFF"
+    "\u203C\u2049\u2122\u2139\uFE0F\u20E3]+"
+)
+
+
+def no_emoji(text):
+    """حذفِ ایموجی از متن (و دکمه‌ها) برای ظاهری تمیز و یک‌دست."""
+    if not isinstance(text, str) or not text:
+        return text
+    cleaned = _EMOJI_RE.sub("", text)
+    cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip() if not text.endswith(" ") else cleaned.rstrip("\n")
+
+
+def no_emoji_deep(value):
+    """پاک‌سازیِ بازگشتی برای دیکشنری/لیست (مثلِ کیبوردها)."""
+    if isinstance(value, str):
+        return no_emoji(value)
+    if isinstance(value, list):
+        return [no_emoji_deep(v) for v in value]
+    if isinstance(value, tuple):
+        return tuple(no_emoji_deep(v) for v in value)
+    if isinstance(value, dict):
+        return {k: (v if k in ("callback_data", "url", "web_app", "data") else no_emoji_deep(v))
+                for k, v in value.items()}
+    return value
+
+
 def en_to_fa(text: str) -> str:
     """تبدیل ارقام انگلیسی و عربی به فارسی."""
     if text is None:
